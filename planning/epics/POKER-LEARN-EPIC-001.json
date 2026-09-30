@@ -1,0 +1,10 @@
+{
+  "id": "POKER-LEARN-EPIC-001",
+  "type": "EPIC",
+  "title": "Review, leak detection, and training",
+  "description": "Hand replayer, EV-loss grading, leak discovery, drills, spaced repetition, and session reports.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

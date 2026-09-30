@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "discovery_id": "POKER-INTELLIGENCE-001",
+  "artifact_type": "decisions",
+  "status": "approved",
+  "decisions": [
+    {
+      "id": "POKER-DEC-001",
+      "title": "Product architecture",
+      "status": "approved",
+      "selected": "Local-first Python platform with domain/services separated from PySide6 HUD and FastAPI/CLI surfaces; optional native kernels only after profiling.",
+      "alternatives": [
+        "Monolithic GUI application",
+        "Web-only application",
+        "Native-first C++/Rust application"
+      ],
+      "evidence": [
+        "planning/domain/POKER-INTELLIGENCE-001.json"
+      ],
+      "consequence": "Core calculations remain independently testable and UI/provider adapters cannot define poker semantics."
+    },
+    {
+      "id": "POKER-DEC-002",
+      "title": "Authoritative numeric representation",
+      "status": "approved",
+      "selected": "Use integer minor/chip units where possible and Decimal/rational-style exact arithmetic for authoritative pot/amount formulas; floats are permitted for simulation/optimization with explicit tolerance.",
+      "alternatives": [
+        "Use float everywhere",
+        "Use Decimal everywhere including hot simulation loops"
+      ],
+      "evidence": [
+        "planning/research/POKER-INTELLIGENCE-001.json",
+        "docs/specs/POKER_MATH_SPEC.md"
+      ],
+      "consequence": "Money/pot identities are stable while performance-sensitive probability code remains practical."
+    },
+    {
+      "id": "POKER-DEC-003",
+      "title": "Statistics model",
+      "status": "approved",
+      "selected": "Define statistics as versioned opportunity + success + dimensions and generate contextual variants through a DSL instead of hard-coding every stat permutation.",
+      "alternatives": [
+        "One database column per HUD stat",
+        "Ad hoc SQL per popup"
+      ],
+      "evidence": [
+        "planning/domain/POKER-INTELLIGENCE-001.json",
+        "docs/specs/STATISTICS_CATALOG.md"
+      ],
+      "consequence": "The system can support hundreds of base metrics and thousands of contextual variants with testable denominators."
+    },
+    {
+      "id": "POKER-DEC-004",
+      "title": "Solver truthfulness",
+      "status": "approved",
+      "selected": "Use CFR correctness ladder and explicit abstractions/re-solving/imported strategies; every result is labeled by source/abstraction/convergence and exact-GTO claims are prohibited unless actually justified.",
+      "alternatives": [
+        "Build full no-limit solver immediately",
+        "Rely only on hand-authored heuristics"
+      ],
+      "evidence": [
+        "planning/research/POKER-INTELLIGENCE-001.json"
+      ],
+      "consequence": "Solver work remains scientifically testable and does not contaminate educational output with false certainty."
+    },
+    {
+      "id": "POKER-DEC-005",
+      "title": "Recommendation structure",
+      "status": "approved",
+      "selected": "Decision output keeps baseline strategy, exploit adjustment, EV analysis, uncertainty, and sensitivity as separate layers.",
+      "alternatives": [
+        "Single action label only",
+        "Black-box score"
+      ],
+      "evidence": [
+        "planning/domain/POKER-INTELLIGENCE-001.json",
+        "docs/specs/DECISION_ENGINE_SPEC.md"
+      ],
+      "consequence": "Users can learn why a decision changes and can distinguish theory from opponent-specific exploitation."
+    },
+    {
+      "id": "POKER-DEC-006",
+      "title": "Live integration boundary",
+      "status": "approved",
+      "selected": "Live mode consumes a structured, validated adapter contract when available; post-session analysis remains fully functional without live integration. OCR/screen scraping is not a foundational dependency.",
+      "alternatives": [
+        "Screen OCR first",
+        "Client-specific logic inside HUD"
+      ],
+      "evidence": [
+        "planning/domain/POKER-INTELLIGENCE-001.json"
+      ],
+      "consequence": "The core remains portable and testable while venue-specific integration is isolated."
+    }
+  ],
+  "human_approval_gates": []
+}

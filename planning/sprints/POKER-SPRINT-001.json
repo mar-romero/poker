@@ -1,0 +1,35 @@
+{
+  "id": "POKER-SPRINT-001",
+  "goal": "Establish a mathematically safe core that can represent hands, account for pots/side-pots, use exact chip arithmetic, and persist normalized domain data with deterministic tests.",
+  "capacity_units": 12,
+  "task_ids": [
+    "POKER-CORE-MODEL-001",
+    "POKER-CORE-POTS-001",
+    "POKER-MATH-PRECISION-001",
+    "POKER-DATA-SCHEMA-001"
+  ],
+  "waves": [
+    [
+      "POKER-CORE-MODEL-001",
+      "POKER-MATH-PRECISION-001"
+    ],
+    [
+      "POKER-CORE-POTS-001",
+      "POKER-DATA-SCHEMA-001"
+    ]
+  ],
+  "rationale": [
+    "Creates the shared types and numerical conventions used by every later subsystem.",
+    "Validates pot/side-pot accounting and persistence boundaries before state/statistics depend on them.",
+    "Uses 10 of the default 12 capacity units, leaving deliberate integration slack."
+  ],
+  "deferred_task_ids": [
+    "POKER-HAND-EVAL-001",
+    "POKER-STATE-001",
+    "POKER-INGEST-CONTRACT-001",
+    "POKER-STATS-OPPORTUNITY-001",
+    "POKER-EQUITY-EXACT-001"
+  ],
+  "discovery_id": "POKER-INTELLIGENCE-001",
+  "used_capacity_units": 10
+}

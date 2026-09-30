@@ -1,0 +1,10 @@
+{
+  "id": "POKER-STATS-CATALOG-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Base statistic catalog",
+  "description": "Preflop, flop, turn, river, showdown, aggression, positional, sizing, and multiway measures.",
+  "status": "approved",
+  "parent_id": "POKER-STATS-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

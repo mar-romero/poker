@@ -1,0 +1,10 @@
+{
+  "id": "POKER-EQUITY-EPIC-001",
+  "type": "EPIC",
+  "title": "Equity and simulation",
+  "description": "Exact enumeration, Monte Carlo, multiway equity, range-vs-range analysis, caching, and numerical confidence.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

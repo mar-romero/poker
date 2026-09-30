@@ -1,0 +1,15 @@
+[mcp_servers.harness-aci]
+command = "powershell.exe"
+# Codex passes MCP `cwd` directly to the child process; Desktop does not resolve
+# it relative to this file. Update this path after moving or cloning the checkout.
+args = ["-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", "scripts/start_aci_mcp.ps1"]
+cwd = "C:\\Users\\romer\\Documents\\GitHub\\harnes"
+enabled = true
+required = true
+startup_timeout_sec = 30
+tool_timeout_sec = 180
+
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800

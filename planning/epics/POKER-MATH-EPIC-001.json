@@ -1,0 +1,10 @@
+{
+  "id": "POKER-MATH-EPIC-001",
+  "type": "EPIC",
+  "title": "Poker mathematics",
+  "description": "Audited formulas for pot odds, EV, fold equity, MDF, combinatorics, stack geometry, variance, and statistical confidence.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

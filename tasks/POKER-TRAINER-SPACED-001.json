@@ -1,0 +1,50 @@
+{
+  "id": "POKER-TRAINER-SPACED-001",
+  "description": "Track concept mastery and schedule review based on accuracy, EV-regret severity, confidence, and time since practice.",
+  "acceptance_criteria": [
+    "Scheduling is deterministic for a fixed learner history.",
+    "Mastery is concept-specific and does not leak across unrelated spot classes.",
+    "Users can reset or inspect scheduling state."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/learn/spaced.py",
+    "tests/learn/test_spaced.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-LEARN-TRAINER-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement mastery and spaced-repetition scheduling",
+    "size": "S",
+    "dependencies": [
+      "POKER-TRAINER-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "POKER-DATA-SCHEMA-001",
+  "description": "Create SQLAlchemy models and migrations for raw sources, normalized hands, players, aliases, actions, boards, decision points, imports, and version provenance using local SQLite by default with portable SQL boundaries.",
+  "acceptance_criteria": [
+    "Schema can recreate an empty database deterministically.",
+    "Foreign keys preserve hand/action/player provenance.",
+    "Raw input hashes and parser versions make reprocessing auditable.",
+    "SQLite WAL configuration and transaction boundaries are tested."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": true,
+    "database_change": true,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": true,
+    "persistence": true,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/db/models.py",
+    "src/poker/db/session.py",
+    "migrations",
+    "tests/db/test_schema.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-DATA-STORE-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Create normalized database schema and migrations",
+    "size": "M",
+    "dependencies": [
+      "POKER-CORE-MODEL-001"
+    ],
+    "priority_score": 4.0
+  }
+}

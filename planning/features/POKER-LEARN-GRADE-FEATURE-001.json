@@ -1,0 +1,10 @@
+{
+  "id": "POKER-LEARN-GRADE-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Decision grading and EV loss",
+  "description": "Compare taken action to modeled alternatives and aggregate regret/EV loss by spot.",
+  "status": "approved",
+  "parent_id": "POKER-LEARN-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

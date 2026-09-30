@@ -1,0 +1,10 @@
+{
+  "id": "POKER-RANGE-BOARD-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Board texture model",
+  "description": "Pairedness, suits, connectivity, straight/flush density, rank structure, and runout deltas.",
+  "status": "approved",
+  "parent_id": "POKER-RANGE-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

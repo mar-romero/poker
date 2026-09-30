@@ -1,0 +1,10 @@
+{
+  "id": "POKER-HUD-EPIC-001",
+  "type": "EPIC",
+  "title": "Desktop HUD and interaction",
+  "description": "Low-latency PySide6 overlay, seat mapping, popups, stat configuration, and live permitted-use decision panels.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

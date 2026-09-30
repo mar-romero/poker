@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "max_bytes": 24000,
+  "require_task_id": true,
+  "require_evidence_refs_for_claims": true,
+  "contracts": {
+    "explorer": "harness/schema/handoffs/explorer.schema.json",
+    "planner": "harness/schema/handoffs/plan.schema.json",
+    "test-designer": "harness/schema/handoffs/test-design.schema.json",
+    "implementer": "harness/schema/handoffs/implementation-result.schema.json",
+    "reviewer": "harness/schema/handoffs/review.schema.json",
+    "test-auditor": "harness/schema/handoffs/test-audit.schema.json",
+    "verifier": "harness/schema/handoffs/verification.schema.json",
+    "security-reviewer": "harness/schema/handoffs/security-review.schema.json"
+  }
+}

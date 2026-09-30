@@ -1,0 +1,10 @@
+{
+  "id": "POKER-PLATFORM-OBS-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Observability and reproducibility",
+  "description": "Structured logs, calculation traces, seeds, model/version provenance, and diagnostics.",
+  "status": "approved",
+  "parent_id": "POKER-PLATFORM-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

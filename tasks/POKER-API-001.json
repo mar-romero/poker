@@ -1,0 +1,52 @@
+{
+  "id": "POKER-API-001",
+  "description": "Expose versioned local endpoints for imports, players, stats, spots, equity, decisions, replays, reports, and health while keeping authoritative logic in domain services.",
+  "acceptance_criteria": [
+    "API schemas are versioned and generated from typed models.",
+    "Long-running equity/solver jobs are cancellable.",
+    "Local service binds safely by default and rejects malformed inputs."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": true,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": true,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/api/app.py",
+    "src/poker/api/routes",
+    "tests/api/test_api.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-PLATFORM-API-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement local FastAPI service",
+    "size": "L",
+    "dependencies": [
+      "POKER-DATA-QUERY-001",
+      "POKER-DECIDE-SPOT-001"
+    ],
+    "priority_score": 4.0
+  }
+}

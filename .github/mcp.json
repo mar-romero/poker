@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "harness-aci": {
+      "type": "local",
+      "command": "node",
+      "args": ["scripts/aci_mcp_node.js"],
+      "env": {},
+      "tools": ["*"]
+    }
+  }
+}

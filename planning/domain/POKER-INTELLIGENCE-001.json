@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "discovery_id": "POKER-INTELLIGENCE-001",
+  "artifact_type": "domain",
+  "status": "complete",
+  "vocabulary": [
+    {
+      "term": "NormalizedHand",
+      "definition": "Versioned canonical representation of one poker hand independent of source text/provider."
+    },
+    {
+      "term": "DecisionSnapshot",
+      "definition": "Immutable legal game state immediately before one actor chooses an action."
+    },
+    {
+      "term": "Opportunity",
+      "definition": "A decision state where a statistic could legally occur and therefore belongs in its denominator."
+    },
+    {
+      "term": "StatisticDefinition",
+      "definition": "Versioned opportunity predicate, success predicate, measure, and dimensions."
+    },
+    {
+      "term": "WeightedRange",
+      "definition": "Probability/frequency weights over legal two-card Holdem combinations after known-card removal."
+    },
+    {
+      "term": "DecisionSpot",
+      "definition": "Versioned analytical input combining state, hero info, ranges, stats, strategy sources, and assumptions."
+    },
+    {
+      "term": "BaselineStrategy",
+      "definition": "Theoretical/imported/solver strategy before player-specific exploit adjustments."
+    },
+    {
+      "term": "ExploitAdjustment",
+      "definition": "Bounded strategy change justified by opponent/population evidence and confidence thresholds."
+    },
+    {
+      "term": "ModeledEV",
+      "definition": "Expected value under explicit range/branch/value assumptions; not guaranteed realized profit."
+    },
+    {
+      "term": "StrategyProvenance",
+      "definition": "Source, solver/import version, abstraction, parameters, checksum, and approximation status for strategy data."
+    }
+  ],
+  "relationships": [
+    {
+      "relationship": "Raw source -> NormalizedHand -> DecisionSnapshots -> derived opportunities/features -> stats/ranges/equity -> DecisionSpot -> strategy/EV analysis -> HUD/replay/training artifacts."
+    },
+    {
+      "relationship": "PlayerProfile aggregates version-compatible StatisticDefinitions; PopulationPrior may inform sparse PlayerProfile posterior estimates."
+    },
+    {
+      "relationship": "A recommendation may combine BaselineStrategy and ExploitAdjustment but must retain both components separately."
+    }
+  ],
+  "invariants": [
+    "A physical card cannot appear in more than one known location within a hand state.",
+    "Authoritative chip accounting conserves contributions and returns except for an explicitly modeled rake/fee transfer.",
+    "A statistic success can occur only inside its opportunity set; denominators are never substituted with total hands unless the definition explicitly says so.",
+    "Weighted ranges assign zero mass to impossible combos containing known dead cards.",
+    "Equity/probability/frequency values remain in [0,1] within numerical tolerance and multiway showdown shares sum to 1.",
+    "Every approximate solver or inferred strategy output carries provenance and may not be labeled exact equilibrium/GTO.",
+    "Every recommendation is reproducible from immutable inputs plus versioned strategy/model artifacts and seeds.",
+    "Realized financial outcome and modeled decision quality are stored/reported as different concepts."
+  ],
+  "open_questions": []
+}

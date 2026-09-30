@@ -1,0 +1,49 @@
+{
+  "id": "POKER-HUD-SHELL-001",
+  "description": "Create transparent click-through/configurable desktop overlay windows, DPI-aware scaling, per-table instance lifecycle, and safe shutdown/recovery.",
+  "acceptance_criteria": [
+    "Overlay can create/destroy multiple independent table instances.",
+    "Layout coordinates scale correctly across configured DPI factors.",
+    "Application state survives a UI restart without corrupting analytical data."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": true,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/hud/app.py",
+    "src/poker/hud/overlay.py",
+    "tests/hud/test_overlay_state.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-HUD-OVERLAY-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement PySide6 overlay shell and table instances",
+    "size": "M",
+    "dependencies": [],
+    "priority_score": 4.0
+  }
+}

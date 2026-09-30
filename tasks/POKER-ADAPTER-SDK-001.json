@@ -1,0 +1,52 @@
+{
+  "id": "POKER-ADAPTER-SDK-001",
+  "description": "Define isolated adapters for hand histories, live structured events, strategy imports, and table metadata with capability declarations and validation.",
+  "acceptance_criteria": [
+    "Adapters declare input schema, capabilities, version, and trust boundary.",
+    "Invalid plugin output cannot bypass domain validation.",
+    "Reference adapter tests run without network access."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": true,
+    "schema_change": true,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/adapters/sdk.py",
+    "docs/specs/ADAPTER_SDK.md",
+    "tests/adapters/test_sdk.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-PLATFORM-ADAPTERS-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement versioned adapter/plugin SDK",
+    "size": "M",
+    "dependencies": [
+      "POKER-INGEST-CONTRACT-001",
+      "POKER-LIVE-DATA-SPIKE-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "POKER-STATS-POSTFLOP-001",
+  "description": "Implement flop/turn/river continuation, probe, delayed c-bet, donk, check-raise, fold/call/raise versus bet, barrel, float, aggression, showdown, WWSF, WTSD, W$SD, and sizing-conditioned measures.",
+  "acceptance_criteria": [
+    "Street-specific opportunity semantics are documented and tested.",
+    "Stats can distinguish IP/OOP, single-raised/3bet/4bet pots, heads-up/multiway, and sizing buckets.",
+    "Showdown and won-when-saw-flop metrics have exact inclusion rules."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/stats/catalog/postflop.py",
+    "tests/stats/test_postflop_catalog.py",
+    "docs/specs/STATISTICS_CATALOG.md"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-STATS-CATALOG-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement postflop base statistics",
+    "size": "XL",
+    "dependencies": [
+      "POKER-STATS-OPPORTUNITY-001",
+      "POKER-RANGE-BOARD-001"
+    ],
+    "priority_score": 4.0
+  }
+}

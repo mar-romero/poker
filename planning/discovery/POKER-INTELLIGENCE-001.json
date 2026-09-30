@@ -1,0 +1,4169 @@
+{
+  "schema_version": 1,
+  "discovery_id": "POKER-INTELLIGENCE-001",
+  "status": "approved",
+  "classification": "PROJECT",
+  "title": "Poker Intelligence Platform — complete engineering plan",
+  "original_request": {
+    "text": "Bueno todo esto que dijiste y mas cosas(fitmulas matematicas etc) créamelo en sprint, spect o epic, la carpeta que sea necesario, para el harnes que voy adjuntarte. Voy hacer un nuevo repositorio con el harnes que voy a pasarte y estos archivos .json o.md para empezar a trabajar.",
+    "language": "es",
+    "canonical_english": "Create all durable planning and specification artifacts required by the attached engineering harness for a new repository that will build the most complete practical poker intelligence, statistics, mathematics, range/equity, solver, decision-support, HUD, review, and training platform possible, including epics, features, executable tasks, and an initial sprint.",
+    "translation": {
+      "equivalence_claim": "EXACT_INTENT",
+      "back_translation": "Crear todos los artefactos durables de planificación y especificación requeridos por el harness de ingeniería adjunto para un repositorio nuevo que construya la plataforma práctica de inteligencia de poker, estadísticas, matemáticas, rangos/equity, solver, soporte de decisiones, HUD, revisión y entrenamiento más completa posible, incluyendo épicas, funcionalidades, tareas ejecutables y un sprint inicial."
+    }
+  },
+  "refined_problem": "Build a trustworthy local-first poker study and decision-analysis platform rather than a superficial HUD: the system must reconstruct legal game state, preserve raw provenance, define statistics by actual opportunities, implement audited poker mathematics, model weighted ranges and blocker effects, compute exact/simulated equity, estimate opponent/population behavior with uncertainty, combine baseline and exploit strategies, compare action EV, explain recommendations, and teach from recurring mistakes. Full no-limit equilibrium solving must be treated as an approximation/research problem with explicit limits rather than an unsupported claim of exact GTO.",
+  "target_users": [
+    "Primary: the repository owner studying and playing No-Limit Texas Holdem in an environment where the intended live-assistance functions are permitted.",
+    "Secondary: future poker students who want post-session analysis, leak detection, drills, and transparent mathematical explanations."
+  ],
+  "outcomes": [
+    "A deterministic hand/game engine that can serve live and post-session workflows.",
+    "A statistics system capable of hundreds of base metrics and thousands of contextual variants without bespoke code per variant.",
+    "Audited mathematical/equity/range outputs with reproducible tests and uncertainty.",
+    "A decision engine that reports action mixes, EV, confidence, sensitivity, and reasons.",
+    "A configurable desktop HUD plus replayer/trainer/reporting workflow.",
+    "A solver research path that can improve strategy quality without mislabeling approximations as exact equilibrium."
+  ],
+  "success_metrics": [
+    {
+      "name": "State reconstruction correctness",
+      "definition": "Golden legal hands replay to expected stacks, pots, legal actions, and decision snapshots; invalid hands fail with explicit invariant errors.",
+      "target": "100% of golden corpus"
+    },
+    {
+      "name": "Stat denominator correctness",
+      "definition": "Canonical opportunity tests for all shipped base stats match independently specified expected successes/opportunities.",
+      "target": "100% base-stat fixtures"
+    },
+    {
+      "name": "Equity numerical correctness",
+      "definition": "Exact engine matches independent oracle fixtures; Monte Carlo converges within declared confidence/tolerance.",
+      "target": "0 unexplained oracle mismatches"
+    },
+    {
+      "name": "Decision reproducibility",
+      "definition": "Same versioned inputs, seeds, strategies, and configuration reproduce the same decision result.",
+      "target": "byte-stable deterministic outputs where sampling is seeded"
+    },
+    {
+      "name": "Explainability coverage",
+      "definition": "Every recommendation exposes strategy source, EV assumptions, opponent evidence, sample/confidence, and approximation status.",
+      "target": "100% recommendations"
+    },
+    {
+      "name": "Interactive performance",
+      "definition": "Common HUD/stat/decision interactions satisfy workload-specific budgets in PERFORMANCE_BUDGETS.md.",
+      "target": "No benchmark budget regression on reference machine profile"
+    }
+  ],
+  "scope": {
+    "in": [
+      "No-Limit Texas Holdem cash-game foundation, 2-10 seats with 6-max as the primary UX target.",
+      "Configurable blinds, antes, effective stacks, side pots, rake/fees, heads-up and multiway.",
+      "Structured hand-history and structured live-event adapter contracts; post-session workflow always available.",
+      "Preflop through river statistics, board/sizing/position/stack/pot-type dimensions, Bayesian uncertainty, recency, and population comparison.",
+      "Weighted ranges, blockers, exact/Monte Carlo equity, EV, MDF, pot odds, SPR, exploit modeling, strategy lookup, solver prototypes, HUD, replayer, trainer, reports, export."
+    ],
+    "out": [
+      "Guaranteeing profit or claiming any approximate strategy is universally optimal.",
+      "OCR/screen-scraping as a foundational dependency; it may be researched later if necessary.",
+      "Other poker variants before Holdem contracts are stable.",
+      "Cloud multi-user SaaS, payments, social features, or remote account management in the initial architecture.",
+      "Full exact solution of unrestricted multiway no-limit Holdem; use abstractions/re-solving/imported strategies with explicit provenance instead."
+    ]
+  },
+  "assumptions": [
+    {
+      "statement": "Primary game is No-Limit Texas Holdem cash; architecture remains extensible to tournaments and other variants.",
+      "reversibility": "high"
+    },
+    {
+      "statement": "The target play environment permits the intended live analysis/decision-support use described by the user.",
+      "reversibility": "high; live adapter can remain disabled while study mode proceeds"
+    },
+    {
+      "statement": "Local desktop first is preferred for latency/privacy; SQLite is the default operational store behind repository interfaces.",
+      "reversibility": "medium"
+    },
+    {
+      "statement": "Python is the orchestration/product language; measured numerical hotspots may move to Rust/C++ only after profiling.",
+      "reversibility": "medium"
+    },
+    {
+      "statement": "Strategy quality will improve incrementally from imported/precomputed baselines and solver research; provenance and approximation labels are mandatory.",
+      "reversibility": "low risk"
+    }
+  ],
+  "open_questions": [
+    {
+      "question": "Which exact poker client/environment and structured live data source will be available?",
+      "blocking": false,
+      "dimension": "external_integration"
+    },
+    {
+      "question": "Which stakes/rake schedule should be the first concrete configuration fixture?",
+      "blocking": false,
+      "dimension": "business_rules"
+    },
+    {
+      "question": "Which precomputed strategy source, if any, will be imported first?",
+      "blocking": false,
+      "dimension": "data_contract"
+    }
+  ],
+  "challenges": [
+    {
+      "challenge": "Statistics can be numerically correct but strategically wrong if opportunity denominators are wrong.",
+      "response": "Opportunity engine + golden hand corpus + machine-readable definitions before UI."
+    },
+    {
+      "challenge": "No-limit game trees are enormous.",
+      "response": "Toy CFR correctness ladder, explicit abstractions, performance spike, and approximation metadata."
+    },
+    {
+      "challenge": "Sparse player samples produce misleading exploit conclusions.",
+      "response": "Raw counts + Bayesian shrinkage + priors + intervals + confidence gates + sensitivity."
+    },
+    {
+      "challenge": "Live latency and concurrency can corrupt or stale decisions.",
+      "response": "Immutable snapshots, versioned event ordering, cancellation, stale-state UI, deterministic traces."
+    },
+    {
+      "challenge": "Outcome variance can be confused with decision quality.",
+      "response": "Separate realized winrate from modeled EV/regret and expose uncertainty."
+    }
+  ],
+  "mvp": {
+    "goal": "Deliver a trustworthy analytical vertical slice: import/reconstruct hands, persist them, compute core poker math and opportunity-correct stats, model ranges/equity, and replay/analyze decisions before advanced solver/HUD optimization.",
+    "includes": [
+      "Canonical domain/state engine",
+      "Reference hand parser + database",
+      "Core math/combinatorics + hand evaluator",
+      "Opportunity engine + first stat catalog",
+      "Weighted ranges + exact/Monte Carlo equity",
+      "Basic decision spot/replayer scaffolding",
+      "Golden/property tests"
+    ],
+    "excludes": [
+      "Production-grade live adapter",
+      "Large no-limit solver",
+      "Advanced exploit engine",
+      "Polished full HUD/trainer"
+    ]
+  },
+  "research_rdd": {
+    "mode": "full",
+    "ready": true,
+    "artifacts": {
+      "research": "planning/research/POKER-INTELLIGENCE-001.json",
+      "domain": "planning/domain/POKER-INTELLIGENCE-001.json",
+      "decisions": "planning/decisions/POKER-INTELLIGENCE-001.json",
+      "scenarios": "planning/scenarios/POKER-INTELLIGENCE-001.json"
+    },
+    "assessment_reasons": [
+      "explicit discovery mode"
+    ]
+  },
+  "work_items": [
+    {
+      "id": "POKER-INTELLIGENCE-PROJECT-001",
+      "type": "PROJECT",
+      "title": "Poker Intelligence Platform",
+      "description": "Build a local-first poker intelligence and training platform that reconstructs games, computes rigorous statistics and poker mathematics, models ranges and opponents, evaluates candidate actions, supports solver-backed strategy baselines, and explains decisions through a configurable HUD, replayer, and trainer.",
+      "status": "approved",
+      "dependencies": [],
+      "success_criteria": [
+        "A normalized hand can be ingested once and deterministically reconstructed into a legal game state.",
+        "Statistics are opportunity-correct, filterable, uncertainty-aware, and reproducible.",
+        "Equity/EV outputs have deterministic test oracles and explicit numerical tolerances.",
+        "Decision outputs separate baseline strategy, exploit adjustment, confidence, and evidence.",
+        "The desktop application supports both live permitted-use analysis and post-session study from the same domain model."
+      ],
+      "risks": [
+        "Incorrect opportunity definitions can silently corrupt strategic conclusions.",
+        "Full-game no-limit solving is computationally intractable without abstractions/re-solving; the product must not claim exact GTO where only approximations exist."
+      ]
+    },
+    {
+      "id": "POKER-CORE-EPIC-001",
+      "type": "EPIC",
+      "title": "Core game model and ingestion",
+      "description": "Canonical cards, seats, actions, hand-history ingestion, and deterministic state reconstruction.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DATA-EPIC-001",
+      "type": "EPIC",
+      "title": "Persistence and analytical data plane",
+      "description": "Durable normalized storage, derived features, indexing, migrations, and reproducible import provenance.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STATS-EPIC-001",
+      "type": "EPIC",
+      "title": "Statistics and query engine",
+      "description": "Opportunity-correct poker statistics, composable filters, uncertainty, temporal weighting, and a generated stat catalog.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-MATH-EPIC-001",
+      "type": "EPIC",
+      "title": "Poker mathematics",
+      "description": "Audited formulas for pot odds, EV, fold equity, MDF, combinatorics, stack geometry, variance, and statistical confidence.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-RANGE-EPIC-001",
+      "type": "EPIC",
+      "title": "Cards, boards, and weighted ranges",
+      "description": "Hand evaluation, board texture/runout semantics, 1,326-combo weighted ranges, blockers, and conditional range updates.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-EQUITY-EPIC-001",
+      "type": "EPIC",
+      "title": "Equity and simulation",
+      "description": "Exact enumeration, Monte Carlo, multiway equity, range-vs-range analysis, caching, and numerical confidence.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-OPP-EPIC-001",
+      "type": "EPIC",
+      "title": "Opponent and population modeling",
+      "description": "Session/lifetime profiles, population priors, change detection, archetypes, and evidence-backed automatic notes.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STRAT-EPIC-001",
+      "type": "EPIC",
+      "title": "Strategy representation and exploit layer",
+      "description": "Versioned baseline strategies, preflop charts, postflop abstractions, exploit adjustments, and explainability.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-SOLVER-EPIC-001",
+      "type": "EPIC",
+      "title": "Solver and re-solving research",
+      "description": "CFR-family correctness harness, abstraction, subgame solving, convergence measurement, and strategy compression.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DECIDE-EPIC-001",
+      "type": "EPIC",
+      "title": "Decision analysis engine",
+      "description": "Build current spots, generate legal actions/sizings, compare EV, recommend mixed strategies, and explain uncertainty.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-HUD-EPIC-001",
+      "type": "EPIC",
+      "title": "Desktop HUD and interaction",
+      "description": "Low-latency PySide6 overlay, seat mapping, popups, stat configuration, and live permitted-use decision panels.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-LEARN-EPIC-001",
+      "type": "EPIC",
+      "title": "Review, leak detection, and training",
+      "description": "Hand replayer, EV-loss grading, leak discovery, drills, spaced repetition, and session reports.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-PLATFORM-EPIC-001",
+      "type": "EPIC",
+      "title": "Local platform APIs and extensibility",
+      "description": "Local API/CLI, adapter/plugin contracts, configuration, import/export, versioning, and observability.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-QUALITY-EPIC-001",
+      "type": "EPIC",
+      "title": "Quality, performance, and hardening",
+      "description": "Golden corpora, property tests, end-to-end scenarios, benchmarks, native acceleration boundaries, and privacy/security hardening.",
+      "status": "approved",
+      "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-CORE-MODEL-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Canonical poker domain model",
+      "description": "Cards, seats, positions, blinds, stacks, pots, streets, actions, side pots, rake, and table configuration.",
+      "status": "approved",
+      "parent_id": "POKER-CORE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-CORE-INGEST-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Hand-history ingestion adapters",
+      "description": "Provider-neutral parser contracts, raw-source provenance, tolerant parsing, and adapter fixtures.",
+      "status": "approved",
+      "parent_id": "POKER-CORE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-CORE-STATE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Deterministic game-state reconstruction",
+      "description": "Replay normalized actions into legal states and detect malformed or impossible sequences.",
+      "status": "approved",
+      "parent_id": "POKER-CORE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DATA-STORE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Operational persistence",
+      "description": "Normalized relational schema, migrations, deduplication, transaction boundaries, and lineage.",
+      "status": "approved",
+      "parent_id": "POKER-DATA-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DATA-FEATURES-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Derived analytical feature store",
+      "description": "Precompute reusable per-opportunity and per-action features without losing raw provenance.",
+      "status": "approved",
+      "parent_id": "POKER-DATA-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DATA-QUERY-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Analytical query/index layer",
+      "description": "Fast player, spot, position, board, sizing, stack, and time-window queries.",
+      "status": "approved",
+      "parent_id": "POKER-DATA-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STATS-OPPORTUNITY-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Opportunity semantics engine",
+      "description": "Define denominators from legal opportunities rather than total-hand shortcuts.",
+      "status": "approved",
+      "parent_id": "POKER-STATS-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STATS-CATALOG-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Base statistic catalog",
+      "description": "Preflop, flop, turn, river, showdown, aggression, positional, sizing, and multiway measures.",
+      "status": "approved",
+      "parent_id": "POKER-STATS-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STATS-DSL-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Composable statistics DSL",
+      "description": "Generate arbitrary stats from measure + opportunity + dimensions + sample filters.",
+      "status": "approved",
+      "parent_id": "POKER-STATS-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STATS-UNCERTAINTY-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Uncertainty and recency",
+      "description": "Bayesian shrinkage, credible intervals, effective samples, population priors, and recency weighting.",
+      "status": "approved",
+      "parent_id": "POKER-STATS-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-MATH-CORE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Core EV and risk formulas",
+      "description": "Pot odds, break-even equity, fold equity, EV branches, MDF, bluff/value ratios, SPR, and implied-odds utilities.",
+      "status": "approved",
+      "parent_id": "POKER-MATH-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-MATH-COMBO-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Combinatorics and blockers",
+      "description": "Combination counts, card removal, combo weighting, and conditional availability.",
+      "status": "approved",
+      "parent_id": "POKER-MATH-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-MATH-STATS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Statistical mathematics",
+      "description": "Beta-binomial updates, intervals, variance, confidence, calibration, and regression/error metrics.",
+      "status": "approved",
+      "parent_id": "POKER-MATH-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-RANGE-EVAL-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Hand evaluator and canonical cards",
+      "description": "Fast correct 5/7-card evaluation with exhaustive/oracle tests.",
+      "status": "approved",
+      "parent_id": "POKER-RANGE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-RANGE-BOARD-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Board texture model",
+      "description": "Pairedness, suits, connectivity, straight/flush density, rank structure, and runout deltas.",
+      "status": "approved",
+      "parent_id": "POKER-RANGE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-RANGE-WEIGHTS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Weighted range model",
+      "description": "Parse/serialize poker notation and maintain normalized per-combo weights.",
+      "status": "approved",
+      "parent_id": "POKER-RANGE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-RANGE-UPDATE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Conditional range inference",
+      "description": "Update ranges from position, action, sizing, board, blockers, and opponent evidence.",
+      "status": "approved",
+      "parent_id": "POKER-RANGE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-EQUITY-EXACT-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Exact equity enumeration",
+      "description": "Enumerate runouts and opponent combos when state space is tractable.",
+      "status": "approved",
+      "parent_id": "POKER-EQUITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-EQUITY-MC-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Monte Carlo equity",
+      "description": "Seeded sampling, stratification, confidence estimates, and convergence diagnostics.",
+      "status": "approved",
+      "parent_id": "POKER-EQUITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-EQUITY-MULTI-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Multiway and range equity",
+      "description": "Hero-vs-range, range-vs-range, and multiway equity under card removal.",
+      "status": "approved",
+      "parent_id": "POKER-EQUITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-OPP-PROFILE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Player profile model",
+      "description": "Lifetime, recent, and current-session behavior with position/sizing/spot context.",
+      "status": "approved",
+      "parent_id": "POKER-OPP-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-OPP-POP-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Population priors and segmentation",
+      "description": "Aggregate cohort priors and use them safely when player samples are sparse.",
+      "status": "approved",
+      "parent_id": "POKER-OPP-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-OPP-CHANGE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Change detection and notes",
+      "description": "Detect meaningful deviations, recent style changes, and generate evidence-backed notes.",
+      "status": "approved",
+      "parent_id": "POKER-OPP-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STRAT-SCHEMA-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Strategy data contract",
+      "description": "Versioned information-set/action probability/value representation with provenance.",
+      "status": "approved",
+      "parent_id": "POKER-STRAT-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STRAT-PREFLOP-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Preflop strategy library",
+      "description": "Stack/position/action-aware opening, calling, 3-bet, 4-bet, shove, and defense ranges.",
+      "status": "approved",
+      "parent_id": "POKER-STRAT-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STRAT-POSTFLOP-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Postflop baseline strategy",
+      "description": "Board/stack/pot/position abstraction lookup with explicit approximation metadata.",
+      "status": "approved",
+      "parent_id": "POKER-STRAT-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STRAT-EXPLOIT-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Exploit adjustment engine",
+      "description": "Adjust baseline strategy from statistically supported opponent/population deviations.",
+      "status": "approved",
+      "parent_id": "POKER-STRAT-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-STRAT-EXPLAIN-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Strategy explanation",
+      "description": "Trace why an action/sizing is preferred and separate theoretical vs exploit inputs.",
+      "status": "approved",
+      "parent_id": "POKER-STRAT-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-SOLVER-CFR-FEATURE-001",
+      "type": "FEATURE",
+      "title": "CFR correctness ladder",
+      "description": "Implement and verify CFR/CFR+ on Kuhn/Leduc before larger abstractions.",
+      "status": "approved",
+      "parent_id": "POKER-SOLVER-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-SOLVER-ABSTRACT-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Holdem abstraction",
+      "description": "Action/card abstraction, bucketing, tree construction, and abstraction-error measurement.",
+      "status": "approved",
+      "parent_id": "POKER-SOLVER-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-SOLVER-RESOLVE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Subgame/re-solving engine",
+      "description": "Depth-limited or continual re-solving experiments with explicit performance/convergence budgets.",
+      "status": "approved",
+      "parent_id": "POKER-SOLVER-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-SOLVER-STORE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Strategy compression/storage",
+      "description": "Compact reproducible storage and lookup of large strategy tables.",
+      "status": "approved",
+      "parent_id": "POKER-SOLVER-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DECIDE-SPOT-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Canonical decision spot",
+      "description": "Build a complete decision input from game state, ranges, statistics, and strategy context.",
+      "status": "approved",
+      "parent_id": "POKER-DECIDE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DECIDE-ACTIONS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Legal action and sizing generator",
+      "description": "Generate folds/checks/calls/raises/all-ins and candidate sizing sets under betting rules.",
+      "status": "approved",
+      "parent_id": "POKER-DECIDE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DECIDE-EV-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Action EV comparator",
+      "description": "Evaluate candidate actions across fold/call/raise branches with range-conditioned equity.",
+      "status": "approved",
+      "parent_id": "POKER-DECIDE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-DECIDE-POLICY-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Recommendation and confidence policy",
+      "description": "Return mixed action frequencies, EV deltas, confidence, sensitivity, and assumptions.",
+      "status": "approved",
+      "parent_id": "POKER-DECIDE-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-HUD-OVERLAY-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Overlay shell and seat mapping",
+      "description": "Transparent desktop overlay, table layouts, seat identity, scaling, and multi-table isolation.",
+      "status": "approved",
+      "parent_id": "POKER-HUD-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-HUD-STATS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "HUD stats and popups",
+      "description": "Configurable compact panels with deep filtered popup views and sample/confidence display.",
+      "status": "approved",
+      "parent_id": "POKER-HUD-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-HUD-DECISION-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Decision panel",
+      "description": "Show current spot, candidate actions, EV, range/equity summaries, and explanation with latency budgets.",
+      "status": "approved",
+      "parent_id": "POKER-HUD-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-LEARN-REPLAYER-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Hand replayer",
+      "description": "Street-by-street replay with ranges, statistics, equities, and decision annotations.",
+      "status": "approved",
+      "parent_id": "POKER-LEARN-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-LEARN-GRADE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Decision grading and EV loss",
+      "description": "Compare taken action to modeled alternatives and aggregate regret/EV loss by spot.",
+      "status": "approved",
+      "parent_id": "POKER-LEARN-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-LEARN-LEAKS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Leak detection",
+      "description": "Rank recurring decision classes by frequency, confidence, and cumulative EV impact.",
+      "status": "approved",
+      "parent_id": "POKER-LEARN-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-LEARN-TRAINER-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Adaptive trainer",
+      "description": "Generate drills from detected leaks and track mastery with spaced repetition.",
+      "status": "approved",
+      "parent_id": "POKER-LEARN-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-LEARN-REPORTS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Session and longitudinal reports",
+      "description": "Session summaries, trend dashboards, position/spot breakdowns, and exportable study queues.",
+      "status": "approved",
+      "parent_id": "POKER-LEARN-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-PLATFORM-API-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Local API and CLI",
+      "description": "Stable local API/CLI for import, query, analyze, replay, train, and benchmark workflows.",
+      "status": "approved",
+      "parent_id": "POKER-PLATFORM-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-PLATFORM-ADAPTERS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Adapter/plugin SDK",
+      "description": "Versioned adapters for hand histories, table metadata, strategy imports, and future integrations.",
+      "status": "approved",
+      "parent_id": "POKER-PLATFORM-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-PLATFORM-CONFIG-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Configuration and profiles",
+      "description": "Schema-validated user profiles, stat packs, layouts, strategy versions, and feature flags.",
+      "status": "approved",
+      "parent_id": "POKER-PLATFORM-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-PLATFORM-OBS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Observability and reproducibility",
+      "description": "Structured logs, calculation traces, seeds, model/version provenance, and diagnostics.",
+      "status": "approved",
+      "parent_id": "POKER-PLATFORM-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-QUALITY-CORPUS-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Golden poker corpus",
+      "description": "Curated canonical hands/decisions covering edge cases, side pots, multiway, all-ins, and malformed data.",
+      "status": "approved",
+      "parent_id": "POKER-QUALITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-QUALITY-PROP-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Property and metamorphic tests",
+      "description": "Game, range, equity, and EV invariants with generated scenarios.",
+      "status": "approved",
+      "parent_id": "POKER-QUALITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-QUALITY-PERF-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Performance benchmarks",
+      "description": "Latency/throughput/memory benchmarks and regression budgets for live and batch workloads.",
+      "status": "approved",
+      "parent_id": "POKER-QUALITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-QUALITY-NATIVE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Native acceleration boundary",
+      "description": "Profile first; move only proven hotspots to Rust/C++ behind deterministic interfaces.",
+      "status": "approved",
+      "parent_id": "POKER-QUALITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-QUALITY-SEC-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Privacy and hardening",
+      "description": "Local-first data handling, safe plugins, input validation, crash recovery, and corrupt-data containment.",
+      "status": "approved",
+      "parent_id": "POKER-QUALITY-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-SOLVER-SPIKE-001",
+      "type": "SPIKE",
+      "title": "Select practical no-limit solving approach",
+      "description": "Benchmark CFR+, MCCFR, depth-limited solving, abstraction choices, and external strategy import against local hardware constraints before committing to a large solver architecture.",
+      "status": "approved",
+      "parent_id": "POKER-SOLVER-EPIC-001",
+      "dependencies": []
+    },
+    {
+      "id": "POKER-LIVE-ADAPTER-SPIKE-001",
+      "type": "SPIKE",
+      "title": "Determine permitted live data contract",
+      "description": "Define the exact structured data source available at the target environment and prove a stable, non-OCR ingestion contract before live coupling.",
+      "status": "approved",
+      "parent_id": "POKER-PLATFORM-EPIC-001",
+      "dependencies": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "POKER-CORE-MODEL-001",
+      "title": "Implement canonical cards, table, seats, stacks, and actions",
+      "description": "Implement immutable canonical domain types for cards, players, seats, positions, blind/ante configuration, chip amounts, streets, actions, pots, and table metadata. Enforce serialization stability and explicit units.",
+      "parent_id": "POKER-CORE-MODEL-FEATURE-001",
+      "files": [
+        "src/poker/domain/cards.py",
+        "src/poker/domain/game.py",
+        "src/poker/domain/money.py",
+        "tests/domain/test_game_model.py"
+      ],
+      "size": "S",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Card identity is unique and validated for a standard 52-card deck.",
+        "Chip/money values never use binary float for authoritative amounts.",
+        "Actions encode actor, street, action kind, amount semantics, sequence order, and source provenance.",
+        "Round-trip serialization is deterministic and versioned."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-CORE-POTS-001",
+      "title": "Implement pot, side-pot, rake, and effective-stack accounting",
+      "description": "Implement deterministic contribution accounting, uncalled-bet returns, side-pot construction, rake hooks, and effective-stack calculation from normalized actions.",
+      "parent_id": "POKER-CORE-MODEL-FEATURE-001",
+      "files": [
+        "src/poker/domain/pots.py",
+        "src/poker/math/chips.py",
+        "tests/domain/test_pots.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-CORE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "Side pots are correct for multiway unequal all-ins.",
+        "Uncalled excess chips are returned exactly once.",
+        "Chip conservation holds before configurable rake.",
+        "Property tests cover random legal contribution patterns."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-INGEST-CONTRACT-001",
+      "title": "Define normalized hand-history adapter contract",
+      "description": "Define raw hand input, parser result, warnings/errors, provenance, table metadata, and normalized-hand versioning so venue-specific parsers remain isolated.",
+      "parent_id": "POKER-CORE-INGEST-FEATURE-001",
+      "files": [
+        "src/poker/ingest/contracts.py",
+        "docs/specs/HAND_HISTORY_CONTRACT.md",
+        "tests/ingest/test_contracts.py"
+      ],
+      "size": "S",
+      "dependencies": [
+        "POKER-CORE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "Adapter interface supports partial/invalid input without silently fabricating actions.",
+        "Every normalized hand retains source identifier, source hash, parser version, and warnings.",
+        "Contract supports 2-10 seats, cash blinds/antes, and future tournament metadata."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-INGEST-REFERENCE-001",
+      "title": "Implement reference text hand-history parser",
+      "description": "Implement one reference parser against fixture hand histories to prove the adapter contract, including all-ins, checks, raises, folds, showdowns, and uncalled returns.",
+      "parent_id": "POKER-CORE-INGEST-FEATURE-001",
+      "files": [
+        "src/poker/ingest/reference.py",
+        "tests/fixtures/hands/reference/",
+        "tests/ingest/test_reference_parser.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-INGEST-CONTRACT-001"
+      ],
+      "acceptance_criteria": [
+        "Parser reproduces expected normalized actions for all fixtures.",
+        "Unknown lines are reported with source location.",
+        "Malformed hands fail closed or produce explicit partial status."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATE-001",
+      "title": "Implement deterministic hand state machine",
+      "description": "Replay normalized actions street by street, validate legal turn order and bet sizing, compute current pot/stacks/legal actions, and emit immutable snapshots at each decision point.",
+      "parent_id": "POKER-CORE-STATE-FEATURE-001",
+      "files": [
+        "src/poker/engine/state.py",
+        "src/poker/engine/rules.py",
+        "tests/engine/test_state_machine.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-CORE-MODEL-001",
+        "POKER-CORE-POTS-001"
+      ],
+      "acceptance_criteria": [
+        "Replaying the same normalized hand yields byte-stable decision snapshots.",
+        "Illegal actions are rejected with actionable invariant errors.",
+        "Heads-up and multiway betting order is correct preflop and postflop.",
+        "Snapshots expose effective stack, pot, amount-to-call, minimum raise, and active players."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DATA-SCHEMA-001",
+      "title": "Create normalized database schema and migrations",
+      "description": "Create SQLAlchemy models and migrations for raw sources, normalized hands, players, aliases, actions, boards, decision points, imports, and version provenance using local SQLite by default with portable SQL boundaries.",
+      "parent_id": "POKER-DATA-STORE-FEATURE-001",
+      "files": [
+        "src/poker/db/models.py",
+        "src/poker/db/session.py",
+        "migrations/",
+        "tests/db/test_schema.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-CORE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "Schema can recreate an empty database deterministically.",
+        "Foreign keys preserve hand/action/player provenance.",
+        "Raw input hashes and parser versions make reprocessing auditable.",
+        "SQLite WAL configuration and transaction boundaries are tested."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": true,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": true,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DATA-IMPORT-001",
+      "title": "Implement idempotent import and deduplication",
+      "description": "Persist normalized hands transactionally, deduplicate by stable source/content identity, and support safe reprocessing when parser versions change.",
+      "parent_id": "POKER-DATA-STORE-FEATURE-001",
+      "files": [
+        "src/poker/db/importer.py",
+        "tests/db/test_importer.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-DATA-SCHEMA-001",
+        "POKER-INGEST-CONTRACT-001"
+      ],
+      "acceptance_criteria": [
+        "Reimporting identical input creates no duplicate hand/action rows.",
+        "Parser-version reprocessing records lineage instead of overwriting history silently.",
+        "Partial failure rolls back the current import unit."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": true,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": true,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DATA-FEATURES-001",
+      "title": "Materialize reusable decision and opportunity features",
+      "description": "Create versioned derived features for positions, initiative, pot type, effective stack, facing action, sizing bucket, board descriptors, and legal opportunities.",
+      "parent_id": "POKER-DATA-FEATURES-FEATURE-001",
+      "files": [
+        "src/poker/features/materialize.py",
+        "src/poker/features/schema.py",
+        "tests/features/test_materialize.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-STATE-001",
+        "POKER-DATA-SCHEMA-001"
+      ],
+      "acceptance_criteria": [
+        "Derived rows link back to exact hand and decision snapshot.",
+        "Feature version changes can be recomputed without modifying raw normalized data.",
+        "Feature extraction is deterministic and batchable."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": true,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DATA-QUERY-001",
+      "title": "Implement indexed analytical query layer",
+      "description": "Provide indexed queries over player, date/session, position, effective stack, pot type, street, board class, sizing, and action sequence with explainable filters.",
+      "parent_id": "POKER-DATA-QUERY-FEATURE-001",
+      "files": [
+        "src/poker/db/queries.py",
+        "src/poker/db/indexes.py",
+        "tests/db/test_queries.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-DATA-FEATURES-001"
+      ],
+      "acceptance_criteria": [
+        "Representative HUD queries meet documented local latency targets on benchmark fixtures.",
+        "Every query exposes denominator/opportunity rows when used for statistics.",
+        "Indexes are migration-managed and benchmarked."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": true,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-OPPORTUNITY-001",
+      "title": "Implement generic opportunity evaluator",
+      "description": "Represent each statistic as an opportunity predicate, success predicate, and dimensions so denominators reflect actual legal decisions.",
+      "parent_id": "POKER-STATS-OPPORTUNITY-FEATURE-001",
+      "files": [
+        "src/poker/stats/opportunity.py",
+        "src/poker/stats/definitions.py",
+        "tests/stats/test_opportunities.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-DATA-FEATURES-001"
+      ],
+      "acceptance_criteria": [
+        "3-bet, fold-to-3bet, c-bet, fold-to-cbet, steal, and BB-defense denominators are validated against golden hands.",
+        "Opportunities can exclude all-in/no-decision states and distinguish heads-up/multiway.",
+        "Definitions are versioned and introspectable."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-PREFLOP-001",
+      "title": "Implement preflop base statistics",
+      "description": "Implement the preflop measures specified in STATISTICS_CATALOG.md including VPIP, PFR, open, limp, iso, cold-call, 3/4/5-bet, squeeze, steal, blind defense, and response frequencies.",
+      "parent_id": "POKER-STATS-CATALOG-FEATURE-001",
+      "files": [
+        "src/poker/stats/catalog/preflop.py",
+        "tests/stats/test_preflop_catalog.py",
+        "docs/specs/STATISTICS_CATALOG.md"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-STATS-OPPORTUNITY-001"
+      ],
+      "acceptance_criteria": [
+        "Every statistic has machine-readable numerator/denominator semantics.",
+        "Golden examples include position-vs-position and facing-action variants.",
+        "All percentages expose successes, opportunities, raw rate, and definition version."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-POSTFLOP-001",
+      "title": "Implement postflop base statistics",
+      "description": "Implement flop/turn/river continuation, probe, delayed c-bet, donk, check-raise, fold/call/raise versus bet, barrel, float, aggression, showdown, WWSF, WTSD, W$SD, and sizing-conditioned measures.",
+      "parent_id": "POKER-STATS-CATALOG-FEATURE-001",
+      "files": [
+        "src/poker/stats/catalog/postflop.py",
+        "tests/stats/test_postflop_catalog.py",
+        "docs/specs/STATISTICS_CATALOG.md"
+      ],
+      "size": "XL",
+      "dependencies": [
+        "POKER-STATS-OPPORTUNITY-001",
+        "POKER-RANGE-BOARD-001"
+      ],
+      "acceptance_criteria": [
+        "Street-specific opportunity semantics are documented and tested.",
+        "Stats can distinguish IP/OOP, single-raised/3bet/4bet pots, heads-up/multiway, and sizing buckets.",
+        "Showdown and won-when-saw-flop metrics have exact inclusion rules."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-DSL-001",
+      "title": "Implement composable stat query DSL",
+      "description": "Build a typed DSL combining measures with dimensions such as position, opponent position, stack, pot type, street, board texture, sizing, player count, initiative, time window, and session.",
+      "parent_id": "POKER-STATS-DSL-FEATURE-001",
+      "files": [
+        "src/poker/stats/dsl.py",
+        "src/poker/stats/query.py",
+        "tests/stats/test_dsl.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-STATS-OPPORTUNITY-001",
+        "POKER-DATA-QUERY-001"
+      ],
+      "acceptance_criteria": [
+        "Equivalent queries produce deterministic canonical forms and cache keys.",
+        "Unsupported or contradictory filters fail with clear diagnostics.",
+        "The DSL can express representative HUD popup queries without custom SQL."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-BAYES-001",
+      "title": "Implement Bayesian shrinkage and credible intervals",
+      "description": "For binomial frequency statistics, implement configurable Beta priors, posterior mean, credible intervals, effective sample reporting, and population-prior fallback.",
+      "parent_id": "POKER-STATS-UNCERTAINTY-FEATURE-001",
+      "files": [
+        "src/poker/stats/uncertainty.py",
+        "tests/stats/test_uncertainty.py",
+        "docs/specs/POKER_MATH_SPEC.md"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-STATS-OPPORTUNITY-001"
+      ],
+      "acceptance_criteria": [
+        "Posterior calculations match independent numerical fixtures within tolerance.",
+        "Raw rate is never hidden; posterior estimate and interval are displayed separately.",
+        "Zero-opportunity and extreme-count behavior is defined and tested."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-RECENCY-001",
+      "title": "Implement recency weighting and session/lifetime views",
+      "description": "Support exponential half-life weighting, discrete recent windows, and session/lifetime splits without mixing their denominators.",
+      "parent_id": "POKER-STATS-UNCERTAINTY-FEATURE-001",
+      "files": [
+        "src/poker/stats/recency.py",
+        "tests/stats/test_recency.py"
+      ],
+      "size": "S",
+      "dependencies": [
+        "POKER-STATS-BAYES-001"
+      ],
+      "acceptance_criteria": [
+        "Half-life weighting matches documented formula.",
+        "Session and lifetime aggregates can be compared with exact sample metadata.",
+        "Recency is opt-in and raw unweighted counts remain accessible."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-MATH-PRECISION-001",
+      "title": "Implement exact chip and normalized-bb arithmetic",
+      "description": "Define authoritative integer/Decimal arithmetic, conversion to big-blind units, rounding rules, tolerance policy, and serialization for all monetary/chip calculations.",
+      "parent_id": "POKER-MATH-CORE-FEATURE-001",
+      "files": [
+        "src/poker/math/precision.py",
+        "tests/math/test_precision.py",
+        "docs/specs/POKER_MATH_SPEC.md"
+      ],
+      "size": "S",
+      "dependencies": [
+        "POKER-CORE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "No authoritative pot/EV/chip amount uses binary float.",
+        "Rounding occurs only at explicit presentation or configured boundary points.",
+        "Conversions round-trip for fixture stake structures."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-MATH-EV-001",
+      "title": "Implement pot odds, break-even, EV, MDF, and bluff/value formulas",
+      "description": "Implement named pure functions for call pot odds, required equity, zero-equity bluff break-even fold rate, branch EV, MDF, polarized river bluff proportions, and sensitivity to rake.",
+      "parent_id": "POKER-MATH-CORE-FEATURE-001",
+      "files": [
+        "src/poker/math/ev.py",
+        "tests/math/test_ev.py",
+        "docs/specs/POKER_MATH_SPEC.md"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-MATH-PRECISION-001"
+      ],
+      "acceptance_criteria": [
+        "Each formula states units, pot timing convention, assumptions, and domain restrictions.",
+        "Tests include hand-calculated examples and algebraic identities.",
+        "Invalid states such as negative pot/call or impossible probabilities are rejected."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-MATH-STACK-001",
+      "title": "Implement SPR, risk/reward, implied-odds, and pot-growth utilities",
+      "description": "Implement effective-stack SPR, geometric pot growth, future-call budget utilities, implied-odds threshold helpers, reverse-implied-odds inputs, and all-in risk/reward functions.",
+      "parent_id": "POKER-MATH-CORE-FEATURE-001",
+      "files": [
+        "src/poker/math/stack.py",
+        "tests/math/test_stack.py"
+      ],
+      "size": "S",
+      "dependencies": [
+        "POKER-MATH-PRECISION-001"
+      ],
+      "acceptance_criteria": [
+        "SPR uses a documented street/pot convention.",
+        "Utilities expose assumptions rather than claiming unknowable future realization.",
+        "All-in and zero-stack edge cases are tested."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-MATH-COMBOS-001",
+      "title": "Implement poker combinatorics and card-removal primitives",
+      "description": "Implement nCk, 1,326 Holdem starting-hand combos, pair/suited/offsuit combo counts, board-card removal, blocker-conditioned counts, and weighted-combo aggregation.",
+      "parent_id": "POKER-MATH-COMBO-FEATURE-001",
+      "files": [
+        "src/poker/math/combinatorics.py",
+        "tests/math/test_combinatorics.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-CORE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "There are exactly 1,326 unordered two-card Holdem combinations.",
+        "Canonical class counts are 6 pair, 4 suited, and 12 offsuit combos before removal.",
+        "Card-removal results match exhaustive enumeration fixtures."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-MATH-STATISTICS-001",
+      "title": "Implement confidence, variance, calibration, and error metrics",
+      "description": "Implement Beta posterior helpers, credible intervals, weighted effective sample size, Monte Carlo standard error, Brier/calibration metrics, and EV/regret aggregation.",
+      "parent_id": "POKER-MATH-STATS-FEATURE-001",
+      "files": [
+        "src/poker/math/statistics.py",
+        "tests/math/test_statistics.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-MATH-PRECISION-001"
+      ],
+      "acceptance_criteria": [
+        "Metrics match SciPy/reference fixtures where applicable.",
+        "Weighted effective sample size behavior is documented for recency weighting.",
+        "No confidence score is emitted without an interpretable underlying quantity."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-HAND-EVAL-001",
+      "title": "Implement correct 5-card and 7-card hand evaluation",
+      "description": "Implement or integrate a deterministic evaluator for high-card through straight flush, with canonical tie breakers and exhaustive category ordering tests.",
+      "parent_id": "POKER-RANGE-EVAL-FEATURE-001",
+      "files": [
+        "src/poker/cards/evaluator.py",
+        "tests/cards/test_evaluator.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-CORE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "All hand categories and tie-break rules match reference fixtures.",
+        "Seven-card evaluation selects the best five-card hand.",
+        "Randomized cross-checking against an independent oracle detects no mismatches in the configured test sample."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-RANGE-BOARD-001",
+      "title": "Implement board texture and runout classifier",
+      "description": "Classify board rank structure, pairedness, suit structure, connectivity, straight/flush completion density, high-card class, and turn/river transition deltas.",
+      "parent_id": "POKER-RANGE-BOARD-FEATURE-001",
+      "files": [
+        "src/poker/cards/board.py",
+        "tests/cards/test_board_texture.py",
+        "docs/specs/RANGE_EQUITY_SPEC.md"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-MATH-COMBOS-001"
+      ],
+      "acceptance_criteria": [
+        "Classification is invariant to suit isomorphisms when labels are irrelevant.",
+        "Paired/monotone/two-tone/rainbow and connectivity fixtures are exhaustive for representative classes.",
+        "Runout delta identifies cards that pair, complete flushes, or materially change straight structure."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-RANGE-MODEL-001",
+      "title": "Implement 1,326-combo weighted range model",
+      "description": "Represent every legal two-card combo with weight [0,1], normalization utilities, dead-card removal, grouping by canonical hand class, and deterministic serialization.",
+      "parent_id": "POKER-RANGE-WEIGHTS-FEATURE-001",
+      "files": [
+        "src/poker/range/model.py",
+        "tests/range/test_model.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-MATH-COMBOS-001"
+      ],
+      "acceptance_criteria": [
+        "Range cannot assign positive weight to combos containing known dead cards after conditioning.",
+        "Total weighted combos and normalized mass are reproducible.",
+        "Serialization preserves exact combo identity and weight tolerance."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-RANGE-NOTATION-001",
+      "title": "Implement range notation parser and formatter",
+      "description": "Parse and format common poker notation such as 22+, A2s+, KQo, explicit combos, percentages, and weighted overrides into the canonical range model.",
+      "parent_id": "POKER-RANGE-WEIGHTS-FEATURE-001",
+      "files": [
+        "src/poker/range/notation.py",
+        "tests/range/test_notation.py"
+      ],
+      "size": "S",
+      "dependencies": [
+        "POKER-RANGE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "Parser round-trips supported notation deterministically.",
+        "Ambiguous or invalid notation produces precise errors.",
+        "Explicit combo weights override class defaults in a documented order."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-RANGE-UPDATE-001",
+      "title": "Implement action-conditioned range update pipeline",
+      "description": "Update prior combo weights from position/action/sizing/board evidence via versioned likelihood models while retaining prior, likelihood, posterior, and normalization trace.",
+      "parent_id": "POKER-RANGE-UPDATE-FEATURE-001",
+      "files": [
+        "src/poker/range/inference.py",
+        "src/poker/range/likelihood.py",
+        "tests/range/test_inference.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-RANGE-MODEL-001",
+        "POKER-STATS-BAYES-001"
+      ],
+      "acceptance_criteria": [
+        "Posterior is proportional to prior × likelihood and is normalized after dead-card removal.",
+        "A zero-information likelihood leaves the prior unchanged apart from card removal.",
+        "Every update stores model/version/evidence used so it can be replayed."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-EQUITY-EXACT-001",
+      "title": "Implement exact showdown equity enumeration",
+      "description": "Enumerate all legal opponent combinations and future runouts for tractable states, handling ties, dead cards, weighted ranges, and deterministic accumulation.",
+      "parent_id": "POKER-EQUITY-EXACT-FEATURE-001",
+      "files": [
+        "src/poker/equity/exact.py",
+        "tests/equity/test_exact.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-HAND-EVAL-001",
+        "POKER-RANGE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "Known equity fixtures match independent oracle values within exact/rational tolerance.",
+        "Tie equity is split correctly.",
+        "Enumeration never samples or double-counts runouts."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-EQUITY-MC-001",
+      "title": "Implement seeded Monte Carlo equity simulation",
+      "description": "Implement reproducible seeded simulation with legal weighted sampling, confidence/standard-error estimates, early stopping by precision, and cancellation.",
+      "parent_id": "POKER-EQUITY-MC-FEATURE-001",
+      "files": [
+        "src/poker/equity/monte_carlo.py",
+        "tests/equity/test_monte_carlo.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-HAND-EVAL-001",
+        "POKER-RANGE-MODEL-001",
+        "POKER-MATH-STATISTICS-001"
+      ],
+      "acceptance_criteria": [
+        "Same seed/configuration produces identical results.",
+        "Results converge to exact enumeration on small states within statistical tolerance.",
+        "Reported uncertainty shrinks with effective sample size and never claims exactness."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-EQUITY-MULTI-001",
+      "title": "Implement range-vs-range and multiway equity",
+      "description": "Compute hero-vs-range, range-vs-range, and multiway equities with blocker-consistent joint sampling/enumeration and per-player tie handling.",
+      "parent_id": "POKER-EQUITY-MULTI-FEATURE-001",
+      "files": [
+        "src/poker/equity/multiway.py",
+        "tests/equity/test_multiway.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-EQUITY-EXACT-001",
+        "POKER-EQUITY-MC-001"
+      ],
+      "acceptance_criteria": [
+        "Joint opponent hands never share cards.",
+        "Equity shares sum to 1 within tolerance for every completed simulation.",
+        "Heads-up results agree with single-opponent engine."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-OPP-PROFILE-001",
+      "title": "Implement player profile aggregates",
+      "description": "Build queryable lifetime/recent/session profiles containing raw and posterior stats, samples, confidence, positions, sizings, and spot dimensions.",
+      "parent_id": "POKER-OPP-PROFILE-FEATURE-001",
+      "files": [
+        "src/poker/opponents/profile.py",
+        "tests/opponents/test_profile.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-STATS-DSL-001",
+        "POKER-STATS-RECENCY-001"
+      ],
+      "acceptance_criteria": [
+        "Profile never merges incompatible definition versions silently.",
+        "Every displayed rate includes sample/opportunity metadata.",
+        "Session/recent/lifetime views are independently queryable."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-OPP-POPULATION-001",
+      "title": "Implement population priors and cohorts",
+      "description": "Aggregate de-identified local cohorts by game/stakes/table format/player archetype dimensions and expose priors for sparse-player estimates.",
+      "parent_id": "POKER-OPP-POP-FEATURE-001",
+      "files": [
+        "src/poker/opponents/population.py",
+        "tests/opponents/test_population.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-OPP-PROFILE-001"
+      ],
+      "acceptance_criteria": [
+        "Cohort membership rules are versioned and auditable.",
+        "A player is excluded from their own prior when configured to avoid leakage.",
+        "Sparse cohorts fall back through a documented hierarchy."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-OPP-CHANGE-001",
+      "title": "Detect statistically meaningful behavior changes",
+      "description": "Detect recent-vs-baseline changes using posterior comparisons/change-point heuristics and require minimum evidence before surfacing a change.",
+      "parent_id": "POKER-OPP-CHANGE-FEATURE-001",
+      "files": [
+        "src/poker/opponents/change.py",
+        "tests/opponents/test_change.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-OPP-PROFILE-001",
+        "POKER-MATH-STATISTICS-001"
+      ],
+      "acceptance_criteria": [
+        "Synthetic no-change sequences have bounded false alert rates in tests.",
+        "Large synthetic shifts are detected after configurable evidence thresholds.",
+        "Alerts show old/new estimates, samples, interval overlap, and method."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-OPP-NOTES-001",
+      "title": "Generate evidence-backed automatic player notes",
+      "description": "Generate structured notes such as overfold/underdefend/high aggression only when a named comparison baseline and evidence threshold are satisfied.",
+      "parent_id": "POKER-OPP-CHANGE-FEATURE-001",
+      "files": [
+        "src/poker/opponents/notes.py",
+        "tests/opponents/test_notes.py"
+      ],
+      "size": "S",
+      "dependencies": [
+        "POKER-OPP-POPULATION-001",
+        "POKER-OPP-CHANGE-001"
+      ],
+      "acceptance_criteria": [
+        "Every note links to metric, filter, player estimate, baseline estimate, sample, and confidence.",
+        "Low-confidence deviations are suppressed or explicitly labeled uncertain.",
+        "Notes are deterministic for the same profile snapshot."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STRAT-SCHEMA-001",
+      "title": "Define versioned strategy and information-set schema",
+      "description": "Define information-set keys, legal actions, sizing identifiers, action frequencies, counterfactual/EV values, abstraction metadata, solver provenance, and confidence fields.",
+      "parent_id": "POKER-STRAT-SCHEMA-FEATURE-001",
+      "files": [
+        "src/poker/strategy/schema.py",
+        "docs/specs/DECISION_ENGINE_SPEC.md",
+        "tests/strategy/test_schema.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-RANGE-MODEL-001",
+        "POKER-STATE-001"
+      ],
+      "acceptance_criteria": [
+        "Strategy entries reject illegal action probabilities and normalize within tolerance.",
+        "Schema distinguishes exact/precomputed/imported/abstract/estimated sources.",
+        "Information-set key is deterministic for a given abstraction version."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STRAT-PREFLOP-001",
+      "title": "Implement preflop strategy lookup and range library",
+      "description": "Store and query weighted preflop strategies by table format, stack, positions, prior action sequence, sizing, and game parameters.",
+      "parent_id": "POKER-STRAT-PREFLOP-FEATURE-001",
+      "files": [
+        "src/poker/strategy/preflop.py",
+        "data/strategies/preflop/README.md",
+        "tests/strategy/test_preflop.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-STRAT-SCHEMA-001",
+        "POKER-RANGE-NOTATION-001"
+      ],
+      "acceptance_criteria": [
+        "Lookup supports open/call/3bet/4bet/jam/fold trees with mixed frequencies.",
+        "Missing exact stack/sizing returns explicit interpolation/fallback metadata rather than silent guessing.",
+        "Imported ranges are versioned with source/provenance."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STRAT-POSTFLOP-001",
+      "title": "Implement postflop baseline abstraction lookup",
+      "description": "Map canonical spots to versioned postflop strategy abstractions by pot type, positions, stack/SPR, board class, action history, and sizing menu.",
+      "parent_id": "POKER-STRAT-POSTFLOP-FEATURE-001",
+      "files": [
+        "src/poker/strategy/postflop.py",
+        "tests/strategy/test_postflop.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-STRAT-SCHEMA-001",
+        "POKER-RANGE-BOARD-001"
+      ],
+      "acceptance_criteria": [
+        "Lookup reports exact matched dimensions and abstraction distance.",
+        "Absent strategy data never fabricates GTO frequencies.",
+        "Board suit isomorphisms are handled consistently when supported."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STRAT-EXPLOIT-001",
+      "title": "Implement bounded exploit adjustment engine",
+      "description": "Adjust baseline frequencies/sizings only from statistically supported opponent/population deviations, with caps, confidence gates, and sensitivity output.",
+      "parent_id": "POKER-STRAT-EXPLOIT-FEATURE-001",
+      "files": [
+        "src/poker/strategy/exploit.py",
+        "tests/strategy/test_exploit.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-STRAT-POSTFLOP-001",
+        "POKER-OPP-PROFILE-001"
+      ],
+      "acceptance_criteria": [
+        "With neutral opponent evidence the adjusted strategy equals baseline.",
+        "Adjustment magnitude is monotone with configured deviation evidence within tested regimes.",
+        "Output separates baseline action mix, adjustment, evidence, and final mix."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STRAT-EXPLAIN-001",
+      "title": "Implement strategy explanation trace",
+      "description": "Produce machine-readable and human-readable reasoning showing range/equity, pot geometry, baseline strategy, exploit evidence, uncertainty, and key blockers without hiding assumptions.",
+      "parent_id": "POKER-STRAT-EXPLAIN-FEATURE-001",
+      "files": [
+        "src/poker/strategy/explain.py",
+        "tests/strategy/test_explain.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-STRAT-EXPLOIT-001",
+        "POKER-MATH-EV-001"
+      ],
+      "acceptance_criteria": [
+        "Explanation contains provenance for every numeric input.",
+        "Contradictory/low-confidence signals are surfaced, not averaged invisibly.",
+        "No explanation labels an approximate solver result as exact."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-SOLVER-RESEARCH-001",
+      "title": "Benchmark practical solver architecture",
+      "description": "Run the solver spike: compare CFR/CFR+/MCCFR, action/card abstractions, depth-limited re-solving, external strategy import, hardware needs, convergence metrics, and integration contracts; write an ADR.",
+      "parent_id": "POKER-SOLVER-EPIC-001",
+      "files": [
+        "planning/spikes/POKER-SOLVER-SPIKE-001.json",
+        "docs/adr/ADR-SOLVER-001.md",
+        "benchmarks/solver/README.md"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-MATH-EV-001",
+        "POKER-RANGE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "ADR records evaluated alternatives, benchmark setup, hardware assumptions, selected path, reversibility, and non-goals.",
+        "The selected path defines what can and cannot be called GTO/equilibrium.",
+        "At least one toy benchmark is reproducible locally."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [
+        "spike",
+        "solver"
+      ],
+      "value": 5,
+      "dependency_unlock": 5,
+      "risk_reduction": 5,
+      "urgency": 3,
+      "confidence": 3
+    },
+    {
+      "id": "POKER-SOLVER-CFR-001",
+      "title": "Implement CFR/CFR+ correctness ladder on toy poker games",
+      "description": "Implement Kuhn and Leduc poker game trees plus CFR/CFR+ with regret matching, average strategy, exploitability/best-response checks where tractable, and convergence plots/data.",
+      "parent_id": "POKER-SOLVER-CFR-FEATURE-001",
+      "files": [
+        "src/poker/solver/games/kuhn.py",
+        "src/poker/solver/games/leduc.py",
+        "src/poker/solver/cfr.py",
+        "tests/solver/test_cfr.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-SOLVER-RESEARCH-001"
+      ],
+      "acceptance_criteria": [
+        "Kuhn equilibrium frequencies/convergence match accepted analytic/reference values within tolerance.",
+        "Regret and average-strategy updates are deterministic for fixed traversal ordering.",
+        "Tests catch sign, reach-probability, and counterfactual-weighting errors."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-SOLVER-ABSTRACTION-001",
+      "title": "Implement no-limit action/card abstraction prototype",
+      "description": "Implement configurable action sizing abstraction and card/board bucketing prototype with explicit mapping error metrics and deterministic tree generation.",
+      "parent_id": "POKER-SOLVER-ABSTRACT-FEATURE-001",
+      "files": [
+        "src/poker/solver/abstraction.py",
+        "src/poker/solver/tree.py",
+        "tests/solver/test_abstraction.py"
+      ],
+      "size": "XL",
+      "dependencies": [
+        "POKER-SOLVER-CFR-001",
+        "POKER-RANGE-BOARD-001"
+      ],
+      "acceptance_criteria": [
+        "Tree builder respects no-limit betting legality and stack caps.",
+        "Every concrete-to-abstract mapping reports abstraction version.",
+        "Benchmark reports state count, memory estimate, and abstraction collisions."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-SOLVER-RESOLVE-001",
+      "title": "Prototype depth-limited subgame re-solving",
+      "description": "Implement a bounded re-solving prototype using the selected solver architecture with configurable depth/actions, range inputs, leaf-value interface, cancellation, and convergence diagnostics.",
+      "parent_id": "POKER-SOLVER-RESOLVE-FEATURE-001",
+      "files": [
+        "src/poker/solver/resolve.py",
+        "tests/solver/test_resolve.py",
+        "benchmarks/solver/resolve.py"
+      ],
+      "size": "XL",
+      "dependencies": [
+        "POKER-SOLVER-ABSTRACTION-001"
+      ],
+      "acceptance_criteria": [
+        "Prototype solves toy/limited benchmark spots reproducibly.",
+        "Latency, iterations, memory, and convergence diagnostics are captured.",
+        "Failure to converge returns explicit uncertain status rather than a confident strategy."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-SOLVER-STORE-001",
+      "title": "Implement compressed strategy storage and lookup",
+      "description": "Implement chunked/versioned strategy serialization, compression, indexed information-set lookup, checksums, and migration/version compatibility.",
+      "parent_id": "POKER-SOLVER-STORE-FEATURE-001",
+      "files": [
+        "src/poker/solver/storage.py",
+        "tests/solver/test_storage.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-STRAT-SCHEMA-001"
+      ],
+      "acceptance_criteria": [
+        "Strategy artifacts are checksum-verified and versioned.",
+        "Lookup is deterministic and benchmarked for HUD use.",
+        "Corrupt/incompatible artifacts fail closed with recovery guidance."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DECIDE-SPOT-001",
+      "title": "Build canonical decision spot assembler",
+      "description": "Assemble current game snapshot, hero hand, board, pot geometry, legal actions, player ranges, opponent stats, population priors, and strategy context into a versioned immutable DecisionSpot.",
+      "parent_id": "POKER-DECIDE-SPOT-FEATURE-001",
+      "files": [
+        "src/poker/decision/spot.py",
+        "tests/decision/test_spot.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-STATE-001",
+        "POKER-OPP-PROFILE-001",
+        "POKER-RANGE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "Spot contains no hidden global state and serializes deterministically.",
+        "Every inferred input records source/provenance/confidence.",
+        "Unknown hero cards or missing context are represented explicitly."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DECIDE-ACTIONS-001",
+      "title": "Generate legal candidate actions and sizings",
+      "description": "Generate check/fold/call/raise/all-in actions plus configurable geometric, pot-fraction, and strategy-specified sizings, respecting minimum raise and effective stacks.",
+      "parent_id": "POKER-DECIDE-ACTIONS-FEATURE-001",
+      "files": [
+        "src/poker/decision/actions.py",
+        "tests/decision/test_actions.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-DECIDE-SPOT-001"
+      ],
+      "acceptance_criteria": [
+        "Every generated action is legal under the state machine.",
+        "Duplicate-equivalent sizings are canonicalized.",
+        "All-in and short-stack min-raise edge cases are tested."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DECIDE-EV-001",
+      "title": "Implement branch-based action EV comparator",
+      "description": "Evaluate candidate actions through fold/call/raise branches using conditional ranges, equity, pot/rake geometry, future-node estimates, and explicit uncertainty propagation.",
+      "parent_id": "POKER-DECIDE-EV-FEATURE-001",
+      "files": [
+        "src/poker/decision/ev.py",
+        "tests/decision/test_ev.py"
+      ],
+      "size": "XL",
+      "dependencies": [
+        "POKER-DECIDE-ACTIONS-001",
+        "POKER-EQUITY-MULTI-001",
+        "POKER-MATH-EV-001"
+      ],
+      "acceptance_criteria": [
+        "Simple terminal decisions reduce exactly to the documented closed-form EV formulas.",
+        "Branch probabilities sum to 1 within tolerance or return invalid-state error.",
+        "EV result includes assumptions, branch contributions, uncertainty, and sensitivity to key inputs."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DECIDE-POLICY-001",
+      "title": "Implement recommendation, mixed-strategy, and confidence policy",
+      "description": "Combine baseline strategy, exploit adjustment, direct EV comparison, solver result, and confidence into a recommendation without collapsing close actions into false certainty.",
+      "parent_id": "POKER-DECIDE-POLICY-FEATURE-001",
+      "files": [
+        "src/poker/decision/policy.py",
+        "tests/decision/test_policy.py",
+        "docs/specs/DECISION_ENGINE_SPEC.md"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-DECIDE-EV-001",
+        "POKER-STRAT-EXPLAIN-001"
+      ],
+      "acceptance_criteria": [
+        "Output includes action frequencies, EV estimates, EV gaps, confidence, and source hierarchy.",
+        "Near-tied actions remain mixed/ambiguous under configurable tolerance.",
+        "Unsupported spots return study guidance/insufficient-model status rather than invented advice."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-HUD-SHELL-001",
+      "title": "Implement PySide6 overlay shell and table instances",
+      "description": "Create transparent click-through/configurable desktop overlay windows, DPI-aware scaling, per-table instance lifecycle, and safe shutdown/recovery.",
+      "parent_id": "POKER-HUD-OVERLAY-FEATURE-001",
+      "files": [
+        "src/poker/hud/app.py",
+        "src/poker/hud/overlay.py",
+        "tests/hud/test_overlay_state.py"
+      ],
+      "size": "M",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Overlay can create/destroy multiple independent table instances.",
+        "Layout coordinates scale correctly across configured DPI factors.",
+        "Application state survives a UI restart without corrupting analytical data."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-HUD-SEATS-001",
+      "title": "Implement seat mapping and player binding",
+      "description": "Map logical seats/player aliases to screen layout coordinates and support manual correction when automatic metadata is unavailable.",
+      "parent_id": "POKER-HUD-OVERLAY-FEATURE-001",
+      "files": [
+        "src/poker/hud/seats.py",
+        "src/poker/hud/layouts.py",
+        "tests/hud/test_seats.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-HUD-SHELL-001"
+      ],
+      "acceptance_criteria": [
+        "Seat mapping is table-layout versioned and deterministic.",
+        "Manual override is persistent per layout and reversible.",
+        "Unknown/empty seats do not inherit stale player data."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-HUD-STATS-001",
+      "title": "Implement compact stat panels and confidence display",
+      "description": "Render configurable stat packs with raw rate, posterior estimate, sample size, confidence/interval cues, and context-aware color-free semantic states.",
+      "parent_id": "POKER-HUD-STATS-FEATURE-001",
+      "files": [
+        "src/poker/hud/stats_panel.py",
+        "src/poker/hud/models.py",
+        "tests/hud/test_stats_model.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-HUD-SEATS-001",
+        "POKER-OPP-PROFILE-001"
+      ],
+      "acceptance_criteria": [
+        "Panel refresh does not block the UI thread.",
+        "Each stat can expose definition and filter summary.",
+        "Missing/low-sample data is visually distinct from true zero."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-HUD-POPUPS-001",
+      "title": "Implement deep stat popup explorer",
+      "description": "Provide tabbed/filtered popup views for preflop/flop/turn/river/position/sizing/board/showdown/range notes using the stat DSL.",
+      "parent_id": "POKER-HUD-STATS-FEATURE-001",
+      "files": [
+        "src/poker/hud/popups.py",
+        "tests/hud/test_popup_queries.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-HUD-STATS-001",
+        "POKER-STATS-DSL-001"
+      ],
+      "acceptance_criteria": [
+        "Popup queries are generated through the DSL rather than bespoke SQL.",
+        "Filters show current denominator/sample and can be reset predictably.",
+        "Slow queries are cancellable and cached by canonical query key."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-HUD-DECISION-001",
+      "title": "Implement live decision panel with explanation",
+      "description": "Render current spot, legal actions, recommended mix, EV deltas, equity/range summary, exploit evidence, confidence, and explanation trace for environments where live assistance is permitted.",
+      "parent_id": "POKER-HUD-DECISION-FEATURE-001",
+      "files": [
+        "src/poker/hud/decision_panel.py",
+        "tests/hud/test_decision_panel.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-DECIDE-POLICY-001",
+        "POKER-HUD-SHELL-001"
+      ],
+      "acceptance_criteria": [
+        "Panel identifies stale/incomplete spot data prominently.",
+        "UI labels exact vs estimated/abstract solver outputs.",
+        "Update latency and cancellation behavior meet the documented performance budget."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-REPLAYER-001",
+      "title": "Implement interactive hand replayer model",
+      "description": "Create a replay timeline exposing each decision snapshot, pot/stacks, board, actions, stats, ranges, equity, and strategy annotations.",
+      "parent_id": "POKER-LEARN-REPLAYER-FEATURE-001",
+      "files": [
+        "src/poker/learn/replayer.py",
+        "src/poker/hud/replayer_view.py",
+        "tests/learn/test_replayer.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-DECIDE-SPOT-001",
+        "POKER-DATA-IMPORT-001"
+      ],
+      "acceptance_criteria": [
+        "Replay state at every action matches state-machine snapshots.",
+        "Users can step streets/actions without recomputation drift.",
+        "Annotations declare whether they were known at play time or computed post hoc."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-GRADE-001",
+      "title": "Grade decisions by modeled EV loss and strategic divergence",
+      "description": "Compare taken action to available action EVs/baseline mix and store decision-grade records with confidence and model version.",
+      "parent_id": "POKER-LEARN-GRADE-FEATURE-001",
+      "files": [
+        "src/poker/learn/grading.py",
+        "tests/learn/test_grading.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-DECIDE-POLICY-001",
+        "POKER-REPLAYER-001"
+      ],
+      "acceptance_criteria": [
+        "EV loss is zero/near-zero for modeled best-equivalent actions within tolerance.",
+        "Grades never compare across incompatible model versions without labeling.",
+        "Low-confidence spots are excluded or downweighted in aggregate leak ranking."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-LEAKS-001",
+      "title": "Detect and rank recurring player leaks",
+      "description": "Aggregate graded decisions into interpretable spot classes and rank by cumulative modeled EV loss, frequency, confidence, and recency.",
+      "parent_id": "POKER-LEARN-LEAKS-FEATURE-001",
+      "files": [
+        "src/poker/learn/leaks.py",
+        "tests/learn/test_leaks.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-GRADE-001",
+        "POKER-STATS-DSL-001"
+      ],
+      "acceptance_criteria": [
+        "Leak groups expose exact filter definition and supporting hand IDs.",
+        "Ranking separates frequency from per-occurrence severity.",
+        "Minimum sample/confidence thresholds prevent one-off outliers from dominating."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-TRAINER-001",
+      "title": "Generate adaptive drills from detected leaks",
+      "description": "Generate reproducible study queues from leak classes, synthetic/real historical spots, target concepts, answer scoring, and explanation feedback.",
+      "parent_id": "POKER-LEARN-TRAINER-FEATURE-001",
+      "files": [
+        "src/poker/learn/trainer.py",
+        "tests/learn/test_trainer.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-LEAKS-001"
+      ],
+      "acceptance_criteria": [
+        "Every drill stores source/provenance and correct answer model version.",
+        "Repeated drills can vary cards/runouts without changing targeted concept when configured.",
+        "Trainer can operate entirely from post-session data."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-TRAINER-SPACED-001",
+      "title": "Implement mastery and spaced-repetition scheduling",
+      "description": "Track concept mastery and schedule review based on accuracy, EV-regret severity, confidence, and time since practice.",
+      "parent_id": "POKER-LEARN-TRAINER-FEATURE-001",
+      "files": [
+        "src/poker/learn/spaced.py",
+        "tests/learn/test_spaced.py"
+      ],
+      "size": "S",
+      "dependencies": [
+        "POKER-TRAINER-001"
+      ],
+      "acceptance_criteria": [
+        "Scheduling is deterministic for a fixed learner history.",
+        "Mastery is concept-specific and does not leak across unrelated spot classes.",
+        "Users can reset or inspect scheduling state."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-REPORTS-001",
+      "title": "Implement session and longitudinal study reports",
+      "description": "Produce session summaries, win/loss context, decision EV loss, position/spot trends, uncertainty-aware stats, top leaks, and a prioritized study queue.",
+      "parent_id": "POKER-LEARN-REPORTS-FEATURE-001",
+      "files": [
+        "src/poker/learn/reports.py",
+        "src/poker/hud/reports_view.py",
+        "tests/learn/test_reports.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-LEAKS-001",
+        "POKER-OPP-PROFILE-001"
+      ],
+      "acceptance_criteria": [
+        "Reports distinguish observed monetary outcome from modeled decision quality.",
+        "All aggregates are reproducible from stored hand/model versions.",
+        "Export omits raw private data unless explicitly requested."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": true,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-API-001",
+      "title": "Implement local FastAPI service",
+      "description": "Expose versioned local endpoints for imports, players, stats, spots, equity, decisions, replays, reports, and health while keeping authoritative logic in domain services.",
+      "parent_id": "POKER-PLATFORM-API-FEATURE-001",
+      "files": [
+        "src/poker/api/app.py",
+        "src/poker/api/routes/",
+        "tests/api/test_api.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-DATA-QUERY-001",
+        "POKER-DECIDE-SPOT-001"
+      ],
+      "acceptance_criteria": [
+        "API schemas are versioned and generated from typed models.",
+        "Long-running equity/solver jobs are cancellable.",
+        "Local service binds safely by default and rejects malformed inputs."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": true,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-CLI-001",
+      "title": "Implement import/analyze/query/benchmark CLI",
+      "description": "Provide CLI workflows for importing hands, validating parsers, querying stats, computing equity/EV, analyzing sessions, and running benchmarks.",
+      "parent_id": "POKER-PLATFORM-API-FEATURE-001",
+      "files": [
+        "src/poker/cli.py",
+        "tests/test_cli.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-API-001"
+      ],
+      "acceptance_criteria": [
+        "CLI has machine-readable JSON output mode.",
+        "Commands return non-zero status on validation/calculation failure.",
+        "Dry-run/import validation can run without mutating the database."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-LIVE-DATA-SPIKE-001",
+      "title": "Prove target-environment live data adapter contract",
+      "description": "Use the target environment available to the operator to identify the structured live hand/state feed, latency, identity mapping, lifecycle, and failure behavior; document the supported adapter boundary without OCR assumptions.",
+      "parent_id": "POKER-PLATFORM-ADAPTERS-FEATURE-001",
+      "files": [
+        "planning/spikes/POKER-LIVE-ADAPTER-SPIKE-001.json",
+        "docs/adr/ADR-LIVE-DATA-001.md",
+        "tests/fixtures/live_adapter/README.md"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-INGEST-CONTRACT-001"
+      ],
+      "acceptance_criteria": [
+        "ADR identifies exact available data source and permission assumptions.",
+        "Prototype captures a sanitized fixture stream for deterministic tests.",
+        "If no stable structured feed exists, live integration remains blocked while post-session functions proceed."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": true,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [
+        "spike",
+        "integration"
+      ],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-ADAPTER-SDK-001",
+      "title": "Implement versioned adapter/plugin SDK",
+      "description": "Define isolated adapters for hand histories, live structured events, strategy imports, and table metadata with capability declarations and validation.",
+      "parent_id": "POKER-PLATFORM-ADAPTERS-FEATURE-001",
+      "files": [
+        "src/poker/adapters/sdk.py",
+        "docs/specs/ADAPTER_SDK.md",
+        "tests/adapters/test_sdk.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-INGEST-CONTRACT-001",
+        "POKER-LIVE-DATA-SPIKE-001"
+      ],
+      "acceptance_criteria": [
+        "Adapters declare input schema, capabilities, version, and trust boundary.",
+        "Invalid plugin output cannot bypass domain validation.",
+        "Reference adapter tests run without network access."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": true,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-CONFIG-001",
+      "title": "Implement schema-validated configuration and user profiles",
+      "description": "Implement configuration for database, stake normalization, stat packs, layouts, solver budgets, priors, recency, strategy versions, and feature flags with migrations/defaults.",
+      "parent_id": "POKER-PLATFORM-CONFIG-FEATURE-001",
+      "files": [
+        "src/poker/config.py",
+        "config/defaults.yaml",
+        "tests/test_config.py"
+      ],
+      "size": "M",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Invalid configuration fails with field-specific diagnostics.",
+        "Configuration versions migrate deterministically.",
+        "Secrets/credentials are never stored in ordinary profile exports."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": true,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-OBS-001",
+      "title": "Implement calculation traces and reproducibility ledger",
+      "description": "Record structured diagnostics for imports, stats definitions, range updates, equity seeds, decision model versions, solver artifacts, and benchmark environment.",
+      "parent_id": "POKER-PLATFORM-OBS-FEATURE-001",
+      "files": [
+        "src/poker/observability.py",
+        "src/poker/provenance.py",
+        "tests/test_provenance.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-CONFIG-001"
+      ],
+      "acceptance_criteria": [
+        "A decision report can enumerate the exact versions/seeds/artifacts that produced it.",
+        "Logs redact private hand/player data by default.",
+        "Trace IDs connect UI/API output to calculation records."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": true,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-QA-GOLDEN-001",
+      "title": "Build golden hand and decision corpus",
+      "description": "Create sanitized fixtures covering heads-up/multiway, limps, squeezes, 3/4bet pots, all-ins, side pots, uncalled bets, rake, weird sizings, showdowns, folds, and malformed input.",
+      "parent_id": "POKER-QUALITY-CORPUS-FEATURE-001",
+      "files": [
+        "tests/fixtures/golden/",
+        "tests/fixtures/golden/README.md"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-STATE-001",
+        "POKER-INGEST-REFERENCE-001"
+      ],
+      "acceptance_criteria": [
+        "Corpus has expected normalized actions and state snapshots.",
+        "Each edge case states which invariant/stat/math behavior it validates.",
+        "Fixtures contain no personal or secret data."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-QA-PROPERTY-001",
+      "title": "Add property-based game/range/equity invariants",
+      "description": "Use generated legal states to test chip conservation, card uniqueness, range mass, probability bounds, equity sums, state replay determinism, and EV algebraic identities.",
+      "parent_id": "POKER-QUALITY-PROP-FEATURE-001",
+      "files": [
+        "tests/property/test_game_properties.py",
+        "tests/property/test_range_properties.py",
+        "tests/property/test_equity_properties.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-EQUITY-MULTI-001",
+        "POKER-STATE-001"
+      ],
+      "acceptance_criteria": [
+        "Generated tests preserve enough seeds/examples to reproduce failures.",
+        "Core invariants run in ordinary CI within a bounded budget.",
+        "Slow exhaustive properties are separately tagged."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-PERF-BENCH-001",
+      "title": "Create performance benchmark suite and budgets",
+      "description": "Benchmark import throughput, stat query latency, exact/MC equity, range updates, decision assembly, HUD refresh, memory, and solver prototypes on fixed fixtures.",
+      "parent_id": "POKER-QUALITY-PERF-FEATURE-001",
+      "files": [
+        "benchmarks/benchmark_poker.py",
+        "docs/specs/PERFORMANCE_BUDGETS.md",
+        "tests/test_benchmark_contract.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-API-001",
+        "POKER-EQUITY-MC-001"
+      ],
+      "acceptance_criteria": [
+        "Benchmarks report hardware/software environment and dataset size.",
+        "Regression thresholds are documented by workload rather than one global time.",
+        "Benchmark results are machine-readable."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-PERF-NATIVE-001",
+      "title": "Introduce native acceleration only for measured hotspots",
+      "description": "After profiling, implement a Rust/PyO3 or C++ boundary for the highest-impact pure calculation kernel while preserving a Python oracle/reference implementation.",
+      "parent_id": "POKER-QUALITY-NATIVE-FEATURE-001",
+      "files": [
+        "native/README.md",
+        "native/src/",
+        "src/poker/native.py",
+        "tests/native/test_parity.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-PERF-BENCH-001"
+      ],
+      "acceptance_criteria": [
+        "Native path demonstrates a measured speedup on the selected benchmark.",
+        "Python/native results match within exact/tolerance contract over randomized fixtures.",
+        "System falls back safely when native extension is unavailable."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": true,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-SECURITY-001",
+      "title": "Harden local data, plugins, and failure recovery",
+      "description": "Threat-model local API, parser/plugin inputs, corrupt strategy files, database recovery, path handling, exports, and crash consistency; implement validation and recovery controls.",
+      "parent_id": "POKER-QUALITY-SEC-FEATURE-001",
+      "files": [
+        "docs/THREAT_MODEL.md",
+        "src/poker/security.py",
+        "tests/security/"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-ADAPTER-SDK-001",
+        "POKER-OBS-001"
+      ],
+      "acceptance_criteria": [
+        "Threat model identifies trust boundaries and mitigations.",
+        "Malformed/untrusted adapter or strategy data cannot execute arbitrary instructions through data paths.",
+        "Recovery procedures are tested against interrupted imports and corrupt artifacts."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": true,
+        "irreversible_change": false,
+        "security_boundary": true,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-RANGE-BLOCKERS-001",
+      "title": "Expose blocker and nut-combo analysis",
+      "description": "Compute blockers/unblockers, nut-combo availability, value/draw class counts, and hand-class removal deltas for explanation and range analysis.",
+      "parent_id": "POKER-RANGE-UPDATE-FEATURE-001",
+      "files": [
+        "src/poker/range/blockers.py",
+        "tests/range/test_blockers.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-RANGE-MODEL-001",
+        "POKER-RANGE-BOARD-001"
+      ],
+      "acceptance_criteria": [
+        "Counts reconcile exactly with conditioned weighted range.",
+        "Known-card removal is applied before nut/draw classification.",
+        "Output is deterministic and explanation-ready."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-RANGE-CLASSES-001",
+      "title": "Classify range into made-hand and draw classes",
+      "description": "Classify each combo on a board into hand strength, pair class, overcards, straight/flush draws, combo draws, nuttiness, and showdown-value buckets.",
+      "parent_id": "POKER-RANGE-UPDATE-FEATURE-001",
+      "files": [
+        "src/poker/range/classes.py",
+        "tests/range/test_classes.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-HAND-EVAL-001",
+        "POKER-RANGE-BOARD-001",
+        "POKER-RANGE-MODEL-001"
+      ],
+      "acceptance_criteria": [
+        "Combo classifications are mutually consistent and can be multi-label for draw properties.",
+        "Class masses sum back to the input range where partitions are defined.",
+        "River classifications contain no impossible draw labels."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-MATH-RAKE-001",
+      "title": "Model rake and fee effects in EV/equity thresholds",
+      "description": "Implement configurable rake/fee functions and integrate them into terminal pot, call threshold, and action-EV calculations with clear site/venue configuration boundaries.",
+      "parent_id": "POKER-MATH-CORE-FEATURE-001",
+      "files": [
+        "src/poker/math/rake.py",
+        "tests/math/test_rake.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-MATH-EV-001"
+      ],
+      "acceptance_criteria": [
+        "No-rake configuration reduces exactly to base formulas.",
+        "Caps/percentage schedules are deterministic and unit-tested.",
+        "Decision outputs disclose whether rake is included and which schedule/version was used."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": true,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-AGGRESSION-001",
+      "title": "Implement advanced aggression and line-frequency metrics",
+      "description": "Add AF, AFq, bet/raise/fold line frequencies, double/triple barrels, delayed lines, probe sequences, river overbet/block-bet, and response-by-sizing metrics.",
+      "parent_id": "POKER-STATS-CATALOG-FEATURE-001",
+      "files": [
+        "src/poker/stats/catalog/lines.py",
+        "tests/stats/test_line_catalog.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-STATS-POSTFLOP-001"
+      ],
+      "acceptance_criteria": [
+        "Line metrics use legal opportunity denominators and documented street histories.",
+        "Sizing-conditioned metrics use canonical buckets plus raw amount filters.",
+        "Multiway exclusions/inclusions are explicit."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-STATS-WINRATE-001",
+      "title": "Implement outcome and variance statistics separated from decision quality",
+      "description": "Compute bb/100, all-in adjusted placeholders when supported, session variance, standard error, positional results, and showdown/non-showdown outcomes while clearly separating monetary outcomes from strategy quality.",
+      "parent_id": "POKER-STATS-CATALOG-FEATURE-001",
+      "files": [
+        "src/poker/stats/catalog/results.py",
+        "tests/stats/test_results.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-DATA-QUERY-001",
+        "POKER-MATH-STATISTICS-001"
+      ],
+      "acceptance_criteria": [
+        "bb/100 uses normalized big-blind units with stake-change handling.",
+        "Outcome stats document rake inclusion and currency/bb normalization.",
+        "Reports never use short-term winrate as a proxy for decision correctness."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": true,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-OPP-ARCHETYPE-001",
+      "title": "Implement interpretable player archetype clustering",
+      "description": "Create optional interpretable clustering/segmentation from stable profile features with minimum samples, standardization, versioned model, and no forced label when confidence is low.",
+      "parent_id": "POKER-OPP-POP-FEATURE-001",
+      "files": [
+        "src/poker/opponents/archetypes.py",
+        "tests/opponents/test_archetypes.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-OPP-POPULATION-001"
+      ],
+      "acceptance_criteria": [
+        "Archetype assignment records model version, features, and distance/confidence.",
+        "Low-sample players remain unclassified or prior-driven.",
+        "Cluster labels are descriptive configuration, not hard-coded strategic truth."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-DECIDE-SENSITIVITY-001",
+      "title": "Implement recommendation sensitivity analysis",
+      "description": "Recompute or approximate action EV/ranking under plausible range, fold-frequency, sizing, and equity uncertainty to show when a recommendation is fragile.",
+      "parent_id": "POKER-DECIDE-POLICY-FEATURE-001",
+      "files": [
+        "src/poker/decision/sensitivity.py",
+        "tests/decision/test_sensitivity.py"
+      ],
+      "size": "L",
+      "dependencies": [
+        "POKER-DECIDE-POLICY-001"
+      ],
+      "acceptance_criteria": [
+        "Sensitivity ranges are derived from explicit uncertainty intervals/configuration.",
+        "Fragile recommendations are labeled when action ordering changes within plausible inputs.",
+        "Results identify the variables driving the largest EV change."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": true,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-HUD-CONFIG-001",
+      "title": "Implement HUD layout/stat-pack editor",
+      "description": "Allow creation/versioning of stat packs, popup groups, table layouts, font/scale settings, confidence/sample display rules, and profile import/export.",
+      "parent_id": "POKER-HUD-STATS-FEATURE-001",
+      "files": [
+        "src/poker/hud/config_editor.py",
+        "tests/hud/test_config_editor.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-HUD-STATS-001",
+        "POKER-CONFIG-001"
+      ],
+      "acceptance_criteria": [
+        "Configuration changes preview without corrupting active table state.",
+        "Export/import is schema-versioned.",
+        "Invalid stat IDs or filters are rejected with guidance."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": true,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    },
+    {
+      "id": "POKER-REPORTS-EXPORT-001",
+      "title": "Implement safe CSV/JSON/Parquet analytical export",
+      "description": "Export normalized hands, selected features, stats, and study data with explicit schemas and redaction controls for offline analysis.",
+      "parent_id": "POKER-LEARN-REPORTS-FEATURE-001",
+      "files": [
+        "src/poker/export.py",
+        "tests/test_export.py"
+      ],
+      "size": "M",
+      "dependencies": [
+        "POKER-REPORTS-001"
+      ],
+      "acceptance_criteria": [
+        "Exports are deterministic for a fixed snapshot/query.",
+        "Private raw text/player aliases can be excluded or pseudonymized.",
+        "Schema version is embedded in exported metadata."
+      ],
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": true,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": true,
+        "migration": false,
+        "persistence": true,
+        "important_calculation": false,
+        "bug_fix": false
+      },
+      "tags": [],
+      "value": 5,
+      "dependency_unlock": 3,
+      "risk_reduction": 4,
+      "urgency": 3,
+      "confidence": 4
+    }
+  ],
+  "proposed_sprint": {
+    "id": "POKER-SPRINT-001",
+    "goal": "Establish a mathematically safe core that can represent hands, account for pots/side-pots, use exact chip arithmetic, and persist normalized domain data with deterministic tests.",
+    "capacity_units": 12,
+    "task_ids": [
+      "POKER-CORE-MODEL-001",
+      "POKER-CORE-POTS-001",
+      "POKER-MATH-PRECISION-001",
+      "POKER-DATA-SCHEMA-001"
+    ],
+    "waves": [
+      [
+        "POKER-CORE-MODEL-001",
+        "POKER-MATH-PRECISION-001"
+      ],
+      [
+        "POKER-CORE-POTS-001",
+        "POKER-DATA-SCHEMA-001"
+      ]
+    ],
+    "rationale": [
+      "Creates the shared types and numerical conventions used by every later subsystem.",
+      "Validates pot/side-pot accounting and persistence boundaries before state/statistics depend on them.",
+      "Uses 10 of the default 12 capacity units, leaving deliberate integration slack."
+    ],
+    "deferred_task_ids": [
+      "POKER-HAND-EVAL-001",
+      "POKER-STATE-001",
+      "POKER-INGEST-CONTRACT-001",
+      "POKER-STATS-OPPORTUNITY-001",
+      "POKER-EQUITY-EXACT-001"
+    ]
+  }
+}

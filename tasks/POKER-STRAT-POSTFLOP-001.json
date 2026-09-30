@@ -1,0 +1,51 @@
+{
+  "id": "POKER-STRAT-POSTFLOP-001",
+  "description": "Map canonical spots to versioned postflop strategy abstractions by pot type, positions, stack/SPR, board class, action history, and sizing menu.",
+  "acceptance_criteria": [
+    "Lookup reports exact matched dimensions and abstraction distance.",
+    "Absent strategy data never fabricates GTO frequencies.",
+    "Board suit isomorphisms are handled consistently when supported."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/strategy/postflop.py",
+    "tests/strategy/test_postflop.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-STRAT-POSTFLOP-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement postflop baseline abstraction lookup",
+    "size": "L",
+    "dependencies": [
+      "POKER-STRAT-SCHEMA-001",
+      "POKER-RANGE-BOARD-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "POKER-LIVE-ADAPTER-SPIKE-001",
+  "type": "SPIKE",
+  "title": "Determine permitted live data contract",
+  "description": "Define the exact structured data source available at the target environment and prove a stable, non-OCR ingestion contract before live coupling.",
+  "status": "approved",
+  "parent_id": "POKER-PLATFORM-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

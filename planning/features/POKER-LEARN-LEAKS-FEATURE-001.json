@@ -1,0 +1,10 @@
+{
+  "id": "POKER-LEARN-LEAKS-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Leak detection",
+  "description": "Rank recurring decision classes by frequency, confidence, and cumulative EV impact.",
+  "status": "approved",
+  "parent_id": "POKER-LEARN-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

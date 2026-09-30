@@ -1,0 +1,52 @@
+{
+  "id": "POKER-SOLVER-CFR-001",
+  "description": "Implement Kuhn and Leduc poker game trees plus CFR/CFR+ with regret matching, average strategy, exploitability/best-response checks where tractable, and convergence plots/data.",
+  "acceptance_criteria": [
+    "Kuhn equilibrium frequencies/convergence match accepted analytic/reference values within tolerance.",
+    "Regret and average-strategy updates are deterministic for fixed traversal ordering.",
+    "Tests catch sign, reach-probability, and counterfactual-weighting errors."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": true,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/solver/games/kuhn.py",
+    "src/poker/solver/games/leduc.py",
+    "src/poker/solver/cfr.py",
+    "tests/solver/test_cfr.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-SOLVER-CFR-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement CFR/CFR+ correctness ladder on toy poker games",
+    "size": "L",
+    "dependencies": [
+      "POKER-SOLVER-RESEARCH-001"
+    ],
+    "priority_score": 4.0
+  }
+}

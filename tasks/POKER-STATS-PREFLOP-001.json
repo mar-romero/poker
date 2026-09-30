@@ -1,0 +1,51 @@
+{
+  "id": "POKER-STATS-PREFLOP-001",
+  "description": "Implement the preflop measures specified in STATISTICS_CATALOG.md including VPIP, PFR, open, limp, iso, cold-call, 3/4/5-bet, squeeze, steal, blind defense, and response frequencies.",
+  "acceptance_criteria": [
+    "Every statistic has machine-readable numerator/denominator semantics.",
+    "Golden examples include position-vs-position and facing-action variants.",
+    "All percentages expose successes, opportunities, raw rate, and definition version."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/stats/catalog/preflop.py",
+    "tests/stats/test_preflop_catalog.py",
+    "docs/specs/STATISTICS_CATALOG.md"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-STATS-CATALOG-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement preflop base statistics",
+    "size": "L",
+    "dependencies": [
+      "POKER-STATS-OPPORTUNITY-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,339 @@
+#!/usr/bin/env python
+from __future__ import annotations
+import argparse, json, re, sys
+from pathlib import Path
+from harnesslib import ROOT, load_manifest, read_provider_active
+
+ACI_SERVER = "harness-aci"
+ACI_INSPECT_TOOLS = [
+    "repo_search", "repo_read_range", "repo_symbol", "repo_callers",
+    "repo_dependencies", "git_status", "git_diff",
+]
+ACI_CHECK_TOOLS = ["tests_run", "lint_run", "diagnostics_get"]
+CODEX_ORCHESTRATOR = Path(".codex/agents/harness-orchestrator.toml")
+CODEX_DEFAULT_AGENT = Path(".codex/agents/default.toml")
+CODEX_HOOKS = Path(".codex/hooks.json")
+CODEX_ACI_ENTRY = Path(".codex/aci_mcp_entry.py")
+ORCHESTRATOR_ROLE = ROOT / ".agents" / "roles" / "harness-orchestrator.md"
+CURSOR_ORCHESTRATOR_RULE = Path(".cursor/rules/harness-orchestrator.mdc")
+CURSOR_TASK_COMMAND = Path(".cursor/commands/harness-task.md")
+CURSOR_ORCHESTRATOR_REPLACEMENTS = (
+    ("You are the primary Codex orchestrator", "You are the primary Cursor orchestrator"),
+    ("scripts/providers/codex_activate_task.py", "scripts/providers/cursor_activate_task.py"),
+    ("a Codex worktree task", "a Cursor worktree task"),
+    ("Codex support for provider-neutral", "Cursor support for provider-neutral"),
+)
+CURSOR_ORCHESTRATOR_HOST = """
+## Cursor host specifics
+
+Cursor exposes no model-list API to the agent. The model IDs offered by the Task tool's `model` parameter are the authoritative host catalog. Before the first activation in a chat, or whenever that list changes, record every listed ID except `inherit`:
+
+`python scripts/providers/cursor_activate_task.py --host-models <id1,id2,...>`
+
+If `harness/model-inventories/cursor.json` is missing or the catalog changed, rebuild it from the local score cache with `python scripts/openrouter_sync.py --provider cursor --cache-only`. Activation never contacts OpenRouter; a network refresh (`python scripts/openrouter_sync.py --all`, with `OPENROUTER_API_KEY` for benchmarks) is operator-triggered only.
+
+Activation prints a `delegation` plan with one entry per routed role. For each delegated stage, launch the Task tool with `subagent_type` set to the role and `model` set to that role's `delegation[].model`; omit `model` only when the plan says `inherit`. If any entry has action `block`, stop and report it. Do not swap in another model to save cost or gain quality: the router already selected the least-resource model that meets the role's capability target, and it prefers a different model, family or vendor for reviewers. When a reviewer's independence is `same_model_fallback`, say so explicitly in the stage report.
+
+Each typed subagent must end with exactly one JSON handoff. Write it unchanged to `.harness/runs/<TASK>/incoming/<role>.json` before `orchestrator.py commit`. Only the implementer writes source files, and only inside the task worktree created at `WORKTREE`.
+
+Prefer the `harness-aci` MCP tools for search, bounded reads, Git state and named checks when the server is enabled; otherwise use Cursor's read-only tools. Shell commands and file writes stay subject to the `.cursor/hooks.json` gates; a hook denial is a policy result, not an obstacle to route around. CodeGraph evidence is used automatically by the context compiler when `python scripts/codegraph_bridge.py status` reports an indexed graph.
+
+Review consent is scoped to the Cursor chat: the hooks record the current `conversation_id` as the provider session, so `python scripts/receipt_review.py consent status <TASK>` resolves it without extra flags.
+"""
+
+
+def _codex_hook_command(script: str) -> str:
+    """Return a repository-relative, cross-machine Python hook command.
+
+    Codex runs project hooks from the project workspace. Keeping both the
+    interpreter and script relative avoids embedding the compiler host's user,
+    drive, or checkout path into the generated adapter.
+    """
+    return f"python scripts/{script}"
+
+
+def cursor_orchestrator_body(canonical: str) -> str:
+    body = canonical
+    for old, new in CURSOR_ORCHESTRATOR_REPLACEMENTS:
+        if old not in body:
+            raise ValueError(f"canonical orchestrator no longer contains {old!r}; update the Cursor adapter")
+        body = body.replace(old, new)
+    return body.rstrip() + "\n" + CURSOR_ORCHESTRATOR_HOST
+
+
+def _codex_binding(name):
+    """Return one active per-agent Codex model binding, if a task is activated."""
+    try:
+        active = read_provider_active("codex")
+    except ValueError:
+        return None
+    if active is None:
+        return None
+    for selection in active.get("selections", []):
+        if selection.get("agent") != name:
+            continue
+        if selection.get("status") != "selected" or selection.get("action") != "use":
+            return None
+        model = selection.get("base_model_id") or selection.get("model_id")
+        if not model:
+            return None
+        return {"model": str(model), "effort": selection.get("reasoning_effort")}
+    return None
+
+
+def aci_tools_for(name, meta):
+    allow_checks = meta.get('mode') != 'read-only' or 'shell' in meta.get('capabilities', []) or name == 'test-auditor'
+    return ACI_INSPECT_TOOLS + (ACI_CHECK_TOOLS if allow_checks else [])
+
+
+def claude_aci_tools(name, meta):
+    return [f"mcp__{ACI_SERVER}__{tool}" for tool in aci_tools_for(name, meta)]
+
+
+def gemini_aci_tools(name, meta):
+    return [f"mcp_{ACI_SERVER}_{tool}" for tool in aci_tools_for(name, meta)]
+
+
+def q(s): return json.dumps(s,ensure_ascii=False)
+def yaml_list(items): return '['+', '.join(items)+']'
+
+
+def front_body(provider,name,meta,body):
+    desc=meta['description']; mode=meta['mode']; turns=meta.get('max_turns',20); skills=meta.get('skills',[])
+    readonly = mode=='read-only'
+    shell = (not readonly) or ('shell' in meta.get('capabilities', []))
+    if provider == 'codex':
+        # Generated adapters must be deterministic and independent of mutable
+        # task/runtime state. Model and reasoning effort are supplied at execution
+        # time by the runtime/orchestrator.
+        sandbox = 'sandbox_mode = "read-only"\n' if readonly else ''
+        return (
+            f'name = {q(name)}\n'
+            f'description = {q(desc)}\n'
+            f'{sandbox}'
+            f'developer_instructions = """\n'
+            f'{body.rstrip()}\n'
+            f'"""\n'
+        )
+    if provider=='claude':
+        if readonly:
+            builtins=['Read','Glob','Grep'] + (['Bash'] if shell else [])
+            dis='Edit, Write' if shell else 'Edit, Write, Bash'
+        else:
+            builtins=['Read','Glob','Grep','Bash','Edit','Write']
+            dis='Agent'
+        tools=', '.join(builtins + claude_aci_tools(name, meta))
+        lines=['---',f'name: {name}',f'description: {desc}','model: inherit',f'maxTurns: {turns}',f'tools: {tools}',f'disallowedTools: {dis}']
+        if skills: lines.append('skills: ['+', '.join(skills)+']')
+        if meta.get('isolation')=='worktree': lines.append('isolation: worktree')
+        return '\n'.join(lines)+f'\n---\n\n{body.rstrip()}\n'
+    if provider=='cursor':
+        return f'---\nname: {name}\ndescription: {desc}\nmodel: inherit\nreadonly: {str(readonly).lower()}\n---\n\n{body.rstrip()}\n'
+    if provider=='gemini':
+        tools=['read_file','read_many_files','list_directory','glob','grep_search','activate_skill'] + gemini_aci_tools(name, meta)
+        if not readonly: tools += ['write_file','replace','run_shell_command']
+        elif shell: tools += ['run_shell_command']
+        return f'---\nname: {name}\ndescription: {desc}\nkind: local\nmax_turns: {turns}\ntools: [{", ".join(tools)}]\n---\n\n{body.rstrip()}\n'
+    if provider=='opencode':
+        # OpenCode V2 uses ordered permissions (last match wins). Keep the
+        # generated adapters explicit so provider safety survives recompilation.
+        caps=set(meta.get('capabilities', []))
+        perms=[
+            ('read','*','allow'), ('glob','*','allow'), ('grep','*','allow'), ('list','*','allow'),
+            ('lsp','*','allow'), ('skill','*','allow'), (f'{ACI_SERVER}_repo_*','*','allow'), (f'{ACI_SERVER}_git_*','*','allow'), (f'{ACI_SERVER}_tests_run','*','allow' if (not readonly or shell or name=='test-auditor') else 'deny'), (f'{ACI_SERVER}_lint_run','*','allow' if (not readonly or shell or name=='test-auditor') else 'deny'), (f'{ACI_SERVER}_diagnostics_get','*','allow' if (not readonly or shell or name=='test-auditor') else 'deny'), ('external_directory','*','deny'),
+            ('edit','*','deny' if readonly else 'allow'),
+            ('shell','*','allow' if shell else 'deny'),
+            ('webfetch','*','deny'), ('websearch','*','deny'), ('subagent','*','deny'),
+        ]
+        if name=='docs-researcher':
+            perms += [('webfetch','*','allow'), ('websearch','*','allow')]
+        lines=[]
+        for action,resource,effect in perms:
+            lines += [f'  - action: {action}', f'    resource: {q(resource)}', f'    effect: {effect}']
+        return f'---\ndescription: {desc}\nmode: subagent\nsteps: {turns}\npermissions:\n'+ '\n'.join(lines)+f'\n---\n\n{body.rstrip()}\n'
+    if provider=='copilot':
+        tools=(['read','search','execute'] if shell else ['read','search']) if readonly else ['read','search','edit','execute']
+        tools += [f'{ACI_SERVER}/{tool}' for tool in aci_tools_for(name, meta)]
+        return f'---\nname: {name}\ndescription: {desc}\ntools: [{", ".join(tools)}]\n---\n\n{body.rstrip()}\n'
+    raise ValueError(provider)
+
+
+def target(provider,name):
+    ext='.toml' if provider=='codex' else '.agent.md' if provider=='copilot' else '.md'
+    return Path(load_manifest()['providers'][provider]['agent_dir'])/(name+ext)
+
+
+def generated():
+    m=load_manifest(); out={}
+    for provider in m['providers']:
+        for name,meta in m['agents'].items():
+            body=(ROOT/m['canonical']['roles_dir']/f'{name}.md').read_text(encoding='utf-8')
+            out[target(provider,name)] = front_body(provider,name,meta,body)
+    # The primary orchestration contract is a separate canonical role: it is
+    # not a worker role in manifest.yaml and therefore is not emitted for every
+    # provider. OpenCode has its native primary adapter; Codex receives the
+    # equivalent selectable custom agent.
+    orchestrator_body = ORCHESTRATOR_ROLE.read_text(encoding='utf-8').rstrip()
+    out[CODEX_ORCHESTRATOR] = (
+        'name = "harness-orchestrator"\n'
+        'description = "Coordinate one routed harness task through specialist agents and evidence-backed closure."\n\n'
+        'developer_instructions = """\n'
+        + orchestrator_body
+        + '\n"""\n'
+    )
+    # Cursor has no primary-agent adapter; the orchestrator is an agent-requested
+    # project rule plus a /harness-task command that invokes it.
+    out[CURSOR_ORCHESTRATOR_RULE] = (
+        '---\n'
+        'description: Harness orchestrator for executing or delegating a durable tasks/*.json task: '
+        'activation, per-role model routing, typed handoffs, TDD/RDD gates and evidence-backed closure.\n'
+        'globs:\n'
+        'alwaysApply: false\n'
+        '---\n\n'
+        + cursor_orchestrator_body(orchestrator_body)
+    )
+    out[CURSOR_TASK_COMMAND] = (
+        '# Harness task\n\n'
+        'Run the durable harness task named after this command (a path under `tasks/`, or a task ID) '
+        'as the primary Cursor orchestrator.\n\n'
+        '1. Read and follow `.cursor/rules/harness-orchestrator.mdc` for the whole lifecycle.\n'
+        '2. Record the Task tool model IDs available in this chat with '
+        '`python scripts/providers/cursor_activate_task.py --host-models <ids>`.\n'
+        '3. Activate with `python scripts/providers/cursor_activate_task.py <task-path>` and use its '
+        '`delegation` plan to pick `subagent_type` and `model` for every stage.\n'
+        '4. Follow `progress.json.current_step` until the finish gate allows closure, '
+        'and report the exact blocker otherwise.\n\n'
+        'If no task file exists yet, first turn the request into one with the `harness-request` skill '
+        '(or `idea-to-work` for a broad product idea) and stop for approval when it has blocking questions.\n'
+    )
+    # Codex gives a project custom agent precedence when its name matches a
+    # built-in agent. `default` is the primary fallback agent, so bind it to
+    # the same durable lifecycle without creating a second source of truth.
+    out[CODEX_DEFAULT_AGENT] = (
+        'name = "default"\n'
+        'description = "Primary harness coordinator for routed, evidence-backed work in this repository."\n\n'
+        'developer_instructions = """\n'
+        + orchestrator_body
+        + '\n"""\n'
+    )
+    # Project-local config resolves relative paths from `.codex`. Keep the
+    # stdio entrypoint there, then import the canonical implementation from
+    # `scripts/` so desktop, CLI, and IDE clients start it consistently.
+    out[CODEX_ACI_ENTRY] = '''#!/usr/bin/env python
+"""Generated entrypoint for the project-scoped Harness ACI MCP server."""
+import json
+import os
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+if os.environ.get("HARNESS_ACI_DIAGNOSTICS") == "1":
+    from harnesslib import provider_overlay_dir
+    path = provider_overlay_dir("codex") / "aci-mcp-diagnostics.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"event": "entrypoint_started"}) + "\\n")
+
+try:
+    from aci_mcp import main
+except BaseException as exc:
+    if os.environ.get("HARNESS_ACI_DIAGNOSTICS") == "1":
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({"event": "entrypoint_import_failed", "error": str(exc), "error_type": type(exc).__name__}) + "\\n")
+    raise
+
+if os.environ.get("HARNESS_ACI_DIAGNOSTICS") == "1":
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"event": "entrypoint_ready"}) + "\\n")
+
+if __name__ == "__main__":
+    exit_code = main()
+    if os.environ.get("HARNESS_ACI_DIAGNOSTICS") == "1":
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({"event": "entrypoint_main_returned", "exit_code": exit_code}) + "\\n")
+    raise SystemExit(exit_code)
+'''
+    out[CODEX_HOOKS] = json.dumps({
+        "description": "Run canonical safety gates before Codex shell commands and file patches.",
+        "hooks": {
+            "SessionStart": [{
+                "matcher": "startup|resume|clear|compact",
+                "hooks": [{
+                    "type": "command",
+                    "command": _codex_hook_command("codex_context_hook.py"),
+                    "timeout": 3,
+                    "statusMessage": "Loading active harness context",
+                }],
+            }],
+            "SubagentStart": [{
+                "hooks": [{
+                    "type": "command",
+                    "command": _codex_hook_command("codex_context_hook.py"),
+                    "timeout": 3,
+                    "statusMessage": "Loading active harness context",
+                }],
+            }],
+            "PreToolUse": [
+                {
+                    "matcher": "^Bash$",
+                    "hooks": [{
+                        "type": "command",
+                        "command": _codex_hook_command("codex_hook.py"),
+                        "timeout": 3,
+                        "statusMessage": "Checking repository command policy",
+                    }],
+                },
+                {
+                    "matcher": "^apply_patch$",
+                    "hooks": [{
+                        "type": "command",
+                        "command": _codex_hook_command("codex_hook.py"),
+                        "timeout": 3,
+                        "statusMessage": "Checking repository write policy",
+                    }],
+                },
+                {
+                    "matcher": "^Agent$",
+                    "hooks": [{
+                        "type": "command",
+                        "command": _codex_hook_command("codex_hook.py"),
+                        "timeout": 3,
+                        "statusMessage": "Checking harness subagent allowlist",
+                    }],
+                },
+            ]
+        },
+    }, indent=2) + "\n"
+    # Claude Code currently discovers project skills from .claude/skills, while the
+    # other supported providers can consume .agents/skills directly. Generate tiny
+    # Claude compatibility wrappers so the canonical skill body still lives once.
+    for skill_dir in sorted((ROOT/m['canonical']['skills_dir']).iterdir()):
+        if not skill_dir.is_dir() or not (skill_dir/'SKILL.md').exists():
+            continue
+        canonical=(skill_dir/'SKILL.md').read_text(encoding='utf-8')
+        import re
+        dm=re.search(r'^description:\s*(.+)$', canonical, re.M)
+        desc=dm.group(1).strip() if dm else f'Canonical {skill_dir.name} skill.'
+        wrapper=f'---\nname: {skill_dir.name}\ndescription: {desc}\n---\n\n@../../../.agents/skills/{skill_dir.name}/SKILL.md\n\nCanonical guidance remains in `.agents/skills/{skill_dir.name}/`.\n'
+        out[Path('.claude/skills')/skill_dir.name/'SKILL.md']=wrapper
+    return out
+
+
+def compile_all(check=False):
+    expected=generated(); bad=[]
+    for rel,content in expected.items():
+        p=ROOT/rel
+        if check:
+            if not p.exists() or p.read_text(encoding='utf-8')!=content: bad.append(rel.as_posix())
+        else:
+            p.parent.mkdir(parents=True,exist_ok=True); p.write_text(content,encoding='utf-8',newline='\n')
+    if check and bad:
+        print('OUT-OF-DATE GENERATED ADAPTERS:'); [print(' -',x) for x in bad]; return 1
+    print('generated artifacts are in sync' if check else f'generated {len(expected)} provider artifacts'); return 0
+
+
+def main():
+    ap=argparse.ArgumentParser(); ap.add_argument('--check',action='store_true'); a=ap.parse_args(); raise SystemExit(compile_all(a.check))
+if __name__=='__main__': main()

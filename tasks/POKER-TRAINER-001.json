@@ -1,0 +1,50 @@
+{
+  "id": "POKER-TRAINER-001",
+  "description": "Generate reproducible study queues from leak classes, synthetic/real historical spots, target concepts, answer scoring, and explanation feedback.",
+  "acceptance_criteria": [
+    "Every drill stores source/provenance and correct answer model version.",
+    "Repeated drills can vary cards/runouts without changing targeted concept when configured.",
+    "Trainer can operate entirely from post-session data."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/learn/trainer.py",
+    "tests/learn/test_trainer.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-LEARN-TRAINER-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Generate adaptive drills from detected leaks",
+    "size": "L",
+    "dependencies": [
+      "POKER-LEAKS-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": "POKER-CONFIG-001",
+  "description": "Implement configuration for database, stake normalization, stat packs, layouts, solver budgets, priors, recency, strategy versions, and feature flags with migrations/defaults.",
+  "acceptance_criteria": [
+    "Invalid configuration fails with field-specific diagnostics.",
+    "Configuration versions migrate deterministically.",
+    "Secrets/credentials are never stored in ordinary profile exports."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": true,
+    "schema_change": true,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/config.py",
+    "config/defaults.yaml",
+    "tests/test_config.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-PLATFORM-CONFIG-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement schema-validated configuration and user profiles",
+    "size": "M",
+    "dependencies": [],
+    "priority_score": 4.0
+  }
+}

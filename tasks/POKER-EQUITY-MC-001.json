@@ -1,0 +1,52 @@
+{
+  "id": "POKER-EQUITY-MC-001",
+  "description": "Implement reproducible seeded simulation with legal weighted sampling, confidence/standard-error estimates, early stopping by precision, and cancellation.",
+  "acceptance_criteria": [
+    "Same seed/configuration produces identical results.",
+    "Results converge to exact enumeration on small states within statistical tolerance.",
+    "Reported uncertainty shrinks with effective sample size and never claims exactness."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": true,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/equity/monte_carlo.py",
+    "tests/equity/test_monte_carlo.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-EQUITY-MC-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement seeded Monte Carlo equity simulation",
+    "size": "L",
+    "dependencies": [
+      "POKER-HAND-EVAL-001",
+      "POKER-RANGE-MODEL-001",
+      "POKER-MATH-STATISTICS-001"
+    ],
+    "priority_score": 4.0
+  }
+}

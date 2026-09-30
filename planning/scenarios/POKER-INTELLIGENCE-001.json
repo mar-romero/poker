@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "discovery_id": "POKER-INTELLIGENCE-001",
+  "artifact_type": "scenarios",
+  "status": "complete",
+  "scenarios": [
+    {
+      "name": "Import and replay a normal six-max hand",
+      "given": "A valid structured hand history with blinds, preflop raise/call, flop/turn/river actions and showdown",
+      "when": "The hand is imported",
+      "then": "The system stores one normalized hand and deterministic decision snapshots whose stacks/pot/actions match the fixture."
+    },
+    {
+      "name": "Reject impossible duplicate cards",
+      "given": "A source hand contains the same physical card in hero hole cards and board",
+      "when": "Normalization/state reconstruction runs",
+      "then": "The hand is rejected or quarantined with a card-uniqueness invariant error and is excluded from analytics."
+    },
+    {
+      "name": "Compute fold-to-3bet correctly",
+      "given": "A player opens, faces a legal 3bet, and has a real fold/call/raise decision",
+      "when": "Fold-to-3bet is queried",
+      "then": "That decision contributes exactly one opportunity and contributes success only if the player folds."
+    },
+    {
+      "name": "Avoid fake confidence from five observations",
+      "given": "A player has 4 folds in 5 relevant opportunities and a configured population prior",
+      "when": "The HUD displays the stat",
+      "then": "It shows raw 80%, sample 5, posterior estimate/interval, and low-confidence status rather than treating 80% as a stable truth."
+    },
+    {
+      "name": "Exact equity on tractable river",
+      "given": "Hero hand, opponent weighted range, and complete board leave no future cards",
+      "when": "Exact equity is requested",
+      "then": "The engine enumerates every legal opponent combo, handles ties, and returns exact weighted equity."
+    },
+    {
+      "name": "Recommendation is sensitive to uncertain fold rate",
+      "given": "Two actions have close EV and opponent fold frequency has a wide credible interval",
+      "when": "The decision engine analyzes sensitivity",
+      "then": "It reports that action ordering is fragile and shows the key threshold rather than a high-confidence single answer."
+    },
+    {
+      "name": "Live data becomes stale",
+      "given": "A table adapter stops updating during an active hand",
+      "when": "The HUD receives no newer validated snapshot within its freshness budget",
+      "then": "The decision panel marks data stale and suppresses fresh-looking recommendations based on old state."
+    },
+    {
+      "name": "Post-session leak training",
+      "given": "Many graded hands show repeated EV loss in BB-vs-BTN turn decisions",
+      "when": "Leak detection and trainer generation run",
+      "then": "The report groups the spot definition, shows supporting hands/confidence/cumulative modeled loss, and creates a drill queue targeting that concept."
+    },
+    {
+      "name": "Solver fails to converge within budget",
+      "given": "A re-solving job reaches latency/iteration budget without sufficient convergence evidence",
+      "when": "The result is requested",
+      "then": "The engine returns approximate/uncertain status with diagnostics and does not label the strategy exact GTO."
+    }
+  ]
+}

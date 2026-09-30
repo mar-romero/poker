@@ -1,0 +1,51 @@
+{
+  "id": "POKER-EQUITY-MULTI-001",
+  "description": "Compute hero-vs-range, range-vs-range, and multiway equities with blocker-consistent joint sampling/enumeration and per-player tie handling.",
+  "acceptance_criteria": [
+    "Joint opponent hands never share cards.",
+    "Equity shares sum to 1 within tolerance for every completed simulation.",
+    "Heads-up results agree with single-opponent engine."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": true,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/equity/multiway.py",
+    "tests/equity/test_multiway.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-EQUITY-MULTI-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement range-vs-range and multiway equity",
+    "size": "L",
+    "dependencies": [
+      "POKER-EQUITY-EXACT-001",
+      "POKER-EQUITY-MC-001"
+    ],
+    "priority_score": 4.0
+  }
+}

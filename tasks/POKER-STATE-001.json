@@ -1,0 +1,53 @@
+{
+  "id": "POKER-STATE-001",
+  "description": "Replay normalized actions street by street, validate legal turn order and bet sizing, compute current pot/stacks/legal actions, and emit immutable snapshots at each decision point.",
+  "acceptance_criteria": [
+    "Replaying the same normalized hand yields byte-stable decision snapshots.",
+    "Illegal actions are rejected with actionable invariant errors.",
+    "Heads-up and multiway betting order is correct preflop and postflop.",
+    "Snapshots expose effective stack, pot, amount-to-call, minimum raise, and active players."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": true,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/engine/state.py",
+    "src/poker/engine/rules.py",
+    "tests/engine/test_state_machine.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-CORE-STATE-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement deterministic hand state machine",
+    "size": "L",
+    "dependencies": [
+      "POKER-CORE-MODEL-001",
+      "POKER-CORE-POTS-001"
+    ],
+    "priority_score": 4.0
+  }
+}

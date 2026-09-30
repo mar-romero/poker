@@ -1,0 +1,50 @@
+{
+  "id": "POKER-MATH-COMBOS-001",
+  "description": "Implement nCk, 1,326 Holdem starting-hand combos, pair/suited/offsuit combo counts, board-card removal, blocker-conditioned counts, and weighted-combo aggregation.",
+  "acceptance_criteria": [
+    "There are exactly 1,326 unordered two-card Holdem combinations.",
+    "Canonical class counts are 6 pair, 4 suited, and 12 offsuit combos before removal.",
+    "Card-removal results match exhaustive enumeration fixtures."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/math/combinatorics.py",
+    "tests/math/test_combinatorics.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-MATH-COMBO-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement poker combinatorics and card-removal primitives",
+    "size": "M",
+    "dependencies": [
+      "POKER-CORE-MODEL-001"
+    ],
+    "priority_score": 4.0
+  }
+}

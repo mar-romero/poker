@@ -1,0 +1,52 @@
+{
+  "id": "POKER-SOLVER-ABSTRACTION-001",
+  "description": "Implement configurable action sizing abstraction and card/board bucketing prototype with explicit mapping error metrics and deterministic tree generation.",
+  "acceptance_criteria": [
+    "Tree builder respects no-limit betting legality and stack caps.",
+    "Every concrete-to-abstract mapping reports abstraction version.",
+    "Benchmark reports state count, memory estimate, and abstraction collisions."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": true,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/solver/abstraction.py",
+    "src/poker/solver/tree.py",
+    "tests/solver/test_abstraction.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-SOLVER-ABSTRACT-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement no-limit action/card abstraction prototype",
+    "size": "XL",
+    "dependencies": [
+      "POKER-SOLVER-CFR-001",
+      "POKER-RANGE-BOARD-001"
+    ],
+    "priority_score": 4.0
+  }
+}

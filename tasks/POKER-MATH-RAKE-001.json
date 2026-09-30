@@ -1,0 +1,50 @@
+{
+  "id": "POKER-MATH-RAKE-001",
+  "description": "Implement configurable rake/fee functions and integrate them into terminal pot, call threshold, and action-EV calculations with clear site/venue configuration boundaries.",
+  "acceptance_criteria": [
+    "No-rake configuration reduces exactly to base formulas.",
+    "Caps/percentage schedules are deterministic and unit-tested.",
+    "Decision outputs disclose whether rake is included and which schedule/version was used."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": true,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/math/rake.py",
+    "tests/math/test_rake.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-MATH-CORE-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Model rake and fee effects in EV/equity thresholds",
+    "size": "M",
+    "dependencies": [
+      "POKER-MATH-EV-001"
+    ],
+    "priority_score": 4.0
+  }
+}

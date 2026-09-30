@@ -1,0 +1,10 @@
+{
+  "id": "POKER-OPP-PROFILE-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Player profile model",
+  "description": "Lifetime, recent, and current-session behavior with position/sizing/spot context.",
+  "status": "approved",
+  "parent_id": "POKER-OPP-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

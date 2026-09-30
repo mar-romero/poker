@@ -1,0 +1,52 @@
+{
+  "id": "POKER-CORE-POTS-001",
+  "description": "Implement deterministic contribution accounting, uncalled-bet returns, side-pot construction, rake hooks, and effective-stack calculation from normalized actions.",
+  "acceptance_criteria": [
+    "Side pots are correct for multiway unequal all-ins.",
+    "Uncalled excess chips are returned exactly once.",
+    "Chip conservation holds before configurable rake.",
+    "Property tests cover random legal contribution patterns."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/domain/pots.py",
+    "src/poker/math/chips.py",
+    "tests/domain/test_pots.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-CORE-MODEL-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement pot, side-pot, rake, and effective-stack accounting",
+    "size": "M",
+    "dependencies": [
+      "POKER-CORE-MODEL-001"
+    ],
+    "priority_score": 4.0
+  }
+}

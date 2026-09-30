@@ -1,0 +1,52 @@
+{
+  "id": "POKER-DATA-FEATURES-001",
+  "description": "Create versioned derived features for positions, initiative, pot type, effective stack, facing action, sizing bucket, board descriptors, and legal opportunities.",
+  "acceptance_criteria": [
+    "Derived rows link back to exact hand and decision snapshot.",
+    "Feature version changes can be recomputed without modifying raw normalized data.",
+    "Feature extraction is deterministic and batchable."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": true,
+    "database_change": true,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/features/materialize.py",
+    "src/poker/features/schema.py",
+    "tests/features/test_materialize.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-DATA-FEATURES-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Materialize reusable decision and opportunity features",
+    "size": "L",
+    "dependencies": [
+      "POKER-STATE-001",
+      "POKER-DATA-SCHEMA-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id": "POKER-SOLVER-RESEARCH-001",
+  "description": "Run the solver spike: compare CFR/CFR+/MCCFR, action/card abstractions, depth-limited re-solving, external strategy import, hardware needs, convergence metrics, and integration contracts; write an ADR.",
+  "acceptance_criteria": [
+    "ADR records evaluated alternatives, benchmark setup, hardware assumptions, selected path, reversibility, and non-goals.",
+    "The selected path defines what can and cannot be called GTO/equilibrium.",
+    "At least one toy benchmark is reproducible locally."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "planning/spikes/POKER-SOLVER-SPIKE-001.json",
+    "docs/adr/ADR-SOLVER-001.md",
+    "benchmarks/solver/README.md"
+  ],
+  "tags": [
+    "spike",
+    "solver",
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-SOLVER-EPIC-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Benchmark practical solver architecture",
+    "size": "M",
+    "dependencies": [
+      "POKER-MATH-EV-001",
+      "POKER-RANGE-MODEL-001"
+    ],
+    "priority_score": 4.6
+  }
+}

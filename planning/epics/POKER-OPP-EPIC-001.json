@@ -1,0 +1,10 @@
+{
+  "id": "POKER-OPP-EPIC-001",
+  "type": "EPIC",
+  "title": "Opponent and population modeling",
+  "description": "Session/lifetime profiles, population priors, change detection, archetypes, and evidence-backed automatic notes.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

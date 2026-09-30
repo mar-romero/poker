@@ -1,0 +1,51 @@
+{
+  "id": "POKER-OPP-CHANGE-001",
+  "description": "Detect recent-vs-baseline changes using posterior comparisons/change-point heuristics and require minimum evidence before surfacing a change.",
+  "acceptance_criteria": [
+    "Synthetic no-change sequences have bounded false alert rates in tests.",
+    "Large synthetic shifts are detected after configurable evidence thresholds.",
+    "Alerts show old/new estimates, samples, interval overlap, and method."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/opponents/change.py",
+    "tests/opponents/test_change.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-OPP-CHANGE-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Detect statistically meaningful behavior changes",
+    "size": "M",
+    "dependencies": [
+      "POKER-OPP-PROFILE-001",
+      "POKER-MATH-STATISTICS-001"
+    ],
+    "priority_score": 4.0
+  }
+}

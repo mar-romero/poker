@@ -1,0 +1,52 @@
+{
+  "id": "POKER-RANGE-UPDATE-001",
+  "description": "Update prior combo weights from position/action/sizing/board evidence via versioned likelihood models while retaining prior, likelihood, posterior, and normalization trace.",
+  "acceptance_criteria": [
+    "Posterior is proportional to prior × likelihood and is normalized after dead-card removal.",
+    "A zero-information likelihood leaves the prior unchanged apart from card removal.",
+    "Every update stores model/version/evidence used so it can be replayed."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": true,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/range/inference.py",
+    "src/poker/range/likelihood.py",
+    "tests/range/test_inference.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-RANGE-UPDATE-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement action-conditioned range update pipeline",
+    "size": "L",
+    "dependencies": [
+      "POKER-RANGE-MODEL-001",
+      "POKER-STATS-BAYES-001"
+    ],
+    "priority_score": 4.0
+  }
+}

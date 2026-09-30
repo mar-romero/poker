@@ -1,0 +1,52 @@
+{
+  "id": "POKER-QA-PROPERTY-001",
+  "description": "Use generated legal states to test chip conservation, card uniqueness, range mass, probability bounds, equity sums, state replay determinism, and EV algebraic identities.",
+  "acceptance_criteria": [
+    "Generated tests preserve enough seeds/examples to reproduce failures.",
+    "Core invariants run in ordinary CI within a bounded budget.",
+    "Slow exhaustive properties are separately tagged."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "tests/property/test_game_properties.py",
+    "tests/property/test_range_properties.py",
+    "tests/property/test_equity_properties.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-QUALITY-PROP-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Add property-based game/range/equity invariants",
+    "size": "L",
+    "dependencies": [
+      "POKER-EQUITY-MULTI-001",
+      "POKER-STATE-001"
+    ],
+    "priority_score": 4.0
+  }
+}

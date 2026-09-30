@@ -1,0 +1,10 @@
+{
+  "id": "POKER-OPP-CHANGE-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Change detection and notes",
+  "description": "Detect meaningful deviations, recent style changes, and generate evidence-backed notes.",
+  "status": "approved",
+  "parent_id": "POKER-OPP-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "POKER-HUD-STATS-FEATURE-001",
+  "type": "FEATURE",
+  "title": "HUD stats and popups",
+  "description": "Configurable compact panels with deep filtered popup views and sample/confidence display.",
+  "status": "approved",
+  "parent_id": "POKER-HUD-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

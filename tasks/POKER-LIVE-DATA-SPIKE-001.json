@@ -1,0 +1,53 @@
+{
+  "id": "POKER-LIVE-DATA-SPIKE-001",
+  "description": "Use the target environment available to the operator to identify the structured live hand/state feed, latency, identity mapping, lifecycle, and failure behavior; document the supported adapter boundary without OCR assumptions.",
+  "acceptance_criteria": [
+    "ADR identifies exact available data source and permission assumptions.",
+    "Prototype captures a sanitized fixture stream for deterministic tests.",
+    "If no stable structured feed exists, live integration remains blocked while post-session functions proceed."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": true,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "planning/spikes/POKER-LIVE-ADAPTER-SPIKE-001.json",
+    "docs/adr/ADR-LIVE-DATA-001.md",
+    "tests/fixtures/live_adapter/README.md"
+  ],
+  "tags": [
+    "spike",
+    "integration",
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-PLATFORM-ADAPTERS-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Prove target-environment live data adapter contract",
+    "size": "M",
+    "dependencies": [
+      "POKER-INGEST-CONTRACT-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "POKER-CLI-001",
+  "description": "Provide CLI workflows for importing hands, validating parsers, querying stats, computing equity/EV, analyzing sessions, and running benchmarks.",
+  "acceptance_criteria": [
+    "CLI has machine-readable JSON output mode.",
+    "Commands return non-zero status on validation/calculation failure.",
+    "Dry-run/import validation can run without mutating the database."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/cli.py",
+    "tests/test_cli.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-PLATFORM-API-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement import/analyze/query/benchmark CLI",
+    "size": "M",
+    "dependencies": [
+      "POKER-API-001"
+    ],
+    "priority_score": 4.0
+  }
+}

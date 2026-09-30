@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "discovery_id": "POKER-INTELLIGENCE-001",
+  "artifact_type": "research",
+  "status": "complete",
+  "sources": [
+    {
+      "url": "https://papers.nips.cc/paper_files/paper/2007/hash/08d98638c6fcd194a4b1e6992063e944-Abstract.html",
+      "retrieved_at": "2026-09-30",
+      "claim": "Counterfactual regret minimization (CFR) minimizes counterfactual regret in imperfect-information extensive-form games and was demonstrated on large poker abstractions."
+    },
+    {
+      "url": "https://arxiv.org/abs/1701.01724",
+      "retrieved_at": "2026-09-30",
+      "claim": "DeepStack combines recursive reasoning/re-solving and learned value estimation for heads-up no-limit Holdem, illustrating that practical no-limit systems rely on decomposition and approximation rather than brute-force full-tree solving."
+    },
+    {
+      "url": "https://arxiv.org/abs/1805.08195",
+      "retrieved_at": "2026-09-30",
+      "claim": "Depth-limited solving for imperfect-information games requires special handling of continuation strategies/values; ordinary perfect-information leaf evaluation is insufficient."
+    },
+    {
+      "url": "https://docs.python.org/3/library/decimal.html",
+      "retrieved_at": "2026-09-30",
+      "claim": "Python Decimal supports exact decimal representation and controllable precision/rounding, useful for avoiding binary-float artifacts in authoritative monetary arithmetic."
+    }
+  ],
+  "findings": [
+    {
+      "finding": "A practical no-limit solver should be layered: correctness on small games first, then abstractions/re-solving/imported strategy data with explicit approximation metadata.",
+      "decision_impact": "Create solver spike + Kuhn/Leduc CFR ladder before Holdem tree work."
+    },
+    {
+      "finding": "Decision quality depends on trustworthy state/range/value inputs; no solver can compensate for corrupted hand parsing or opportunity statistics.",
+      "decision_impact": "Core state, math, data provenance, and test corpus precede advanced strategy work."
+    },
+    {
+      "finding": "Exact decimal/integer chip handling is preferable to binary float for authoritative pot and amount accounting.",
+      "decision_impact": "Adopt integer/Decimal precision contract and limit float to numerical simulation outputs with tolerances."
+    }
+  ],
+  "assumptions": [
+    {
+      "statement": "The first solver objective is a practical study assistant, not an exact solution of unrestricted multiway no-limit Holdem.",
+      "validation": "Benchmark solver approaches and document the approximation envelope in ADR-SOLVER-001."
+    }
+  ],
+  "contrary_evidence": [
+    {
+      "statement": "Imported commercial/precomputed strategies may provide stronger immediate baselines than a new local solver.",
+      "impact": "Keep strategy schema source-agnostic and prioritize import provenance alongside solver R&D."
+    }
+  ],
+  "open_questions": []
+}

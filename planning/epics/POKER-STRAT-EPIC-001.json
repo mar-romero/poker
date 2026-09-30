@@ -1,0 +1,10 @@
+{
+  "id": "POKER-STRAT-EPIC-001",
+  "type": "EPIC",
+  "title": "Strategy representation and exploit layer",
+  "description": "Versioned baseline strategies, preflop charts, postflop abstractions, exploit adjustments, and explainability.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "name": "Poker Intelligence Harness Planning Pack",
+  "discovery_id": "POKER-INTELLIGENCE-001",
+  "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "classification": "PROJECT",
+  "status": "approved",
+  "research_rdd": {
+    "mode": "full",
+    "ready": true
+  },
+  "counts": {
+    "work_items": 70,
+    "tasks": 77,
+    "epics": 14,
+    "features": 53,
+    "spikes": 2,
+    "initial_sprints": 1
+  },
+  "validation": {
+    "research_discovery_status": "PASS",
+    "product_planning_validate": "PASS",
+    "product_planning_materialize": "PASS",
+    "dependency_integrity": "PASS",
+    "json_parse": "PASS"
+  },
+  "initial_sprint": "POKER-SPRINT-001",
+  "notes": [
+    "The full backlog is materialized, but only Sprint 001 is scheduled initially.",
+    "Later sprints should be selected from ready tasks as dependencies close and evidence changes."
+  ]
+}

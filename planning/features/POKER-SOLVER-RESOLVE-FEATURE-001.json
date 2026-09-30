@@ -1,0 +1,10 @@
+{
+  "id": "POKER-SOLVER-RESOLVE-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Subgame/re-solving engine",
+  "description": "Depth-limited or continual re-solving experiments with explicit performance/convergence budgets.",
+  "status": "approved",
+  "parent_id": "POKER-SOLVER-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

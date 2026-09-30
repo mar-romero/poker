@@ -1,0 +1,51 @@
+{
+  "id": "POKER-INGEST-CONTRACT-001",
+  "description": "Define raw hand input, parser result, warnings/errors, provenance, table metadata, and normalized-hand versioning so venue-specific parsers remain isolated.",
+  "acceptance_criteria": [
+    "Adapter interface supports partial/invalid input without silently fabricating actions.",
+    "Every normalized hand retains source identifier, source hash, parser version, and warnings.",
+    "Contract supports 2-10 seats, cash blinds/antes, and future tournament metadata."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": true,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/ingest/contracts.py",
+    "docs/specs/HAND_HISTORY_CONTRACT.md",
+    "tests/ingest/test_contracts.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-CORE-INGEST-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Define normalized hand-history adapter contract",
+    "size": "S",
+    "dependencies": [
+      "POKER-CORE-MODEL-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "POKER-PERF-BENCH-001",
+  "description": "Benchmark import throughput, stat query latency, exact/MC equity, range updates, decision assembly, HUD refresh, memory, and solver prototypes on fixed fixtures.",
+  "acceptance_criteria": [
+    "Benchmarks report hardware/software environment and dataset size.",
+    "Regression thresholds are documented by workload rather than one global time.",
+    "Benchmark results are machine-readable."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": true,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "benchmarks/benchmark_poker.py",
+    "docs/specs/PERFORMANCE_BUDGETS.md",
+    "tests/test_benchmark_contract.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-QUALITY-PERF-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Create performance benchmark suite and budgets",
+    "size": "M",
+    "dependencies": [
+      "POKER-API-001",
+      "POKER-EQUITY-MC-001"
+    ],
+    "priority_score": 4.0
+  }
+}

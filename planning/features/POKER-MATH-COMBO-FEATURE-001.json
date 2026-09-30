@@ -1,0 +1,10 @@
+{
+  "id": "POKER-MATH-COMBO-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Combinatorics and blockers",
+  "description": "Combination counts, card removal, combo weighting, and conditional availability.",
+  "status": "approved",
+  "parent_id": "POKER-MATH-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "POKER-REPORTS-EXPORT-001",
+  "description": "Export normalized hands, selected features, stats, and study data with explicit schemas and redaction controls for offline analysis.",
+  "acceptance_criteria": [
+    "Exports are deterministic for a fixed snapshot/query.",
+    "Private raw text/player aliases can be excluded or pseudonymized.",
+    "Schema version is embedded in exported metadata."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": true,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/export.py",
+    "tests/test_export.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-LEARN-REPORTS-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement safe CSV/JSON/Parquet analytical export",
+    "size": "M",
+    "dependencies": [
+      "POKER-REPORTS-001"
+    ],
+    "priority_score": 4.0
+  }
+}

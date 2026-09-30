@@ -1,0 +1,10 @@
+{
+  "id": "POKER-STATS-EPIC-001",
+  "type": "EPIC",
+  "title": "Statistics and query engine",
+  "description": "Opportunity-correct poker statistics, composable filters, uncertainty, temporal weighting, and a generated stat catalog.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

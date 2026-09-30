@@ -1,0 +1,52 @@
+{
+  "id": "POKER-REPORTS-001",
+  "description": "Produce session summaries, win/loss context, decision EV loss, position/spot trends, uncertainty-aware stats, top leaks, and a prioritized study queue.",
+  "acceptance_criteria": [
+    "Reports distinguish observed monetary outcome from modeled decision quality.",
+    "All aggregates are reproducible from stored hand/model versions.",
+    "Export omits raw private data unless explicitly requested."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": true,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/learn/reports.py",
+    "src/poker/hud/reports_view.py",
+    "tests/learn/test_reports.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-LEARN-REPORTS-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement session and longitudinal study reports",
+    "size": "M",
+    "dependencies": [
+      "POKER-LEAKS-001",
+      "POKER-OPP-PROFILE-001"
+    ],
+    "priority_score": 4.0
+  }
+}

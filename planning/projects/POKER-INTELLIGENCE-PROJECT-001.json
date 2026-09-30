@@ -1,0 +1,20 @@
+{
+  "id": "POKER-INTELLIGENCE-PROJECT-001",
+  "type": "PROJECT",
+  "title": "Poker Intelligence Platform",
+  "description": "Build a local-first poker intelligence and training platform that reconstructs games, computes rigorous statistics and poker mathematics, models ranges and opponents, evaluates candidate actions, supports solver-backed strategy baselines, and explains decisions through a configurable HUD, replayer, and trainer.",
+  "status": "approved",
+  "dependencies": [],
+  "success_criteria": [
+    "A normalized hand can be ingested once and deterministically reconstructed into a legal game state.",
+    "Statistics are opportunity-correct, filterable, uncertainty-aware, and reproducible.",
+    "Equity/EV outputs have deterministic test oracles and explicit numerical tolerances.",
+    "Decision outputs separate baseline strategy, exploit adjustment, confidence, and evidence.",
+    "The desktop application supports both live permitted-use analysis and post-session study from the same domain model."
+  ],
+  "risks": [
+    "Incorrect opportunity definitions can silently corrupt strategic conclusions.",
+    "Full-game no-limit solving is computationally intractable without abstractions/re-solving; the product must not claim exact GTO where only approximations exist."
+  ],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

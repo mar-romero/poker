@@ -1,0 +1,52 @@
+{
+  "id": "POKER-STATS-DSL-001",
+  "description": "Build a typed DSL combining measures with dimensions such as position, opponent position, stack, pot type, street, board texture, sizing, player count, initiative, time window, and session.",
+  "acceptance_criteria": [
+    "Equivalent queries produce deterministic canonical forms and cache keys.",
+    "Unsupported or contradictory filters fail with clear diagnostics.",
+    "The DSL can express representative HUD popup queries without custom SQL."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": true,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/stats/dsl.py",
+    "src/poker/stats/query.py",
+    "tests/stats/test_dsl.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-STATS-DSL-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement composable stat query DSL",
+    "size": "L",
+    "dependencies": [
+      "POKER-STATS-OPPORTUNITY-001",
+      "POKER-DATA-QUERY-001"
+    ],
+    "priority_score": 4.0
+  }
+}

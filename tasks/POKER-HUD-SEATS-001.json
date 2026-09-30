@@ -1,0 +1,51 @@
+{
+  "id": "POKER-HUD-SEATS-001",
+  "description": "Map logical seats/player aliases to screen layout coordinates and support manual correction when automatic metadata is unavailable.",
+  "acceptance_criteria": [
+    "Seat mapping is table-layout versioned and deterministic.",
+    "Manual override is persistent per layout and reversible.",
+    "Unknown/empty seats do not inherit stale player data."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/hud/seats.py",
+    "src/poker/hud/layouts.py",
+    "tests/hud/test_seats.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-HUD-OVERLAY-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement seat mapping and player binding",
+    "size": "M",
+    "dependencies": [
+      "POKER-HUD-SHELL-001"
+    ],
+    "priority_score": 4.0
+  }
+}

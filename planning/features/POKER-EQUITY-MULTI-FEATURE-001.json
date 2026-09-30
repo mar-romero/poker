@@ -1,0 +1,10 @@
+{
+  "id": "POKER-EQUITY-MULTI-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Multiway and range equity",
+  "description": "Hero-vs-range, range-vs-range, and multiway equity under card removal.",
+  "status": "approved",
+  "parent_id": "POKER-EQUITY-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

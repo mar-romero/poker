@@ -1,0 +1,10 @@
+{
+  "id": "POKER-SOLVER-SPIKE-001",
+  "type": "SPIKE",
+  "title": "Select practical no-limit solving approach",
+  "description": "Benchmark CFR+, MCCFR, depth-limited solving, abstraction choices, and external strategy import against local hardware constraints before committing to a large solver architecture.",
+  "status": "approved",
+  "parent_id": "POKER-SOLVER-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

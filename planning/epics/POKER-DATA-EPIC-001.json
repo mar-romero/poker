@@ -1,0 +1,10 @@
+{
+  "id": "POKER-DATA-EPIC-001",
+  "type": "EPIC",
+  "title": "Persistence and analytical data plane",
+  "description": "Durable normalized storage, derived features, indexing, migrations, and reproducible import provenance.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

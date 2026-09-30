@@ -1,0 +1,10 @@
+{
+  "id": "POKER-PLATFORM-EPIC-001",
+  "type": "EPIC",
+  "title": "Local platform APIs and extensibility",
+  "description": "Local API/CLI, adapter/plugin contracts, configuration, import/export, versioning, and observability.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

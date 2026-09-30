@@ -1,0 +1,50 @@
+{
+  "id": "POKER-DECIDE-SENSITIVITY-001",
+  "description": "Recompute or approximate action EV/ranking under plausible range, fold-frequency, sizing, and equity uncertainty to show when a recommendation is fragile.",
+  "acceptance_criteria": [
+    "Sensitivity ranges are derived from explicit uncertainty intervals/configuration.",
+    "Fragile recommendations are labeled when action ordering changes within plausible inputs.",
+    "Results identify the variables driving the largest EV change."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/decision/sensitivity.py",
+    "tests/decision/test_sensitivity.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-DECIDE-POLICY-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement recommendation sensitivity analysis",
+    "size": "L",
+    "dependencies": [
+      "POKER-DECIDE-POLICY-001"
+    ],
+    "priority_score": 4.0
+  }
+}

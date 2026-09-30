@@ -1,0 +1,52 @@
+{
+  "id": "POKER-DECIDE-POLICY-001",
+  "description": "Combine baseline strategy, exploit adjustment, direct EV comparison, solver result, and confidence into a recommendation without collapsing close actions into false certainty.",
+  "acceptance_criteria": [
+    "Output includes action frequencies, EV estimates, EV gaps, confidence, and source hierarchy.",
+    "Near-tied actions remain mixed/ambiguous under configurable tolerance.",
+    "Unsupported spots return study guidance/insufficient-model status rather than invented advice."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/decision/policy.py",
+    "tests/decision/test_policy.py",
+    "docs/specs/DECISION_ENGINE_SPEC.md"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-DECIDE-POLICY-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement recommendation, mixed-strategy, and confidence policy",
+    "size": "L",
+    "dependencies": [
+      "POKER-DECIDE-EV-001",
+      "POKER-STRAT-EXPLAIN-001"
+    ],
+    "priority_score": 4.0
+  }
+}

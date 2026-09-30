@@ -1,0 +1,50 @@
+{
+  "id": "POKER-STATS-AGGRESSION-001",
+  "description": "Add AF, AFq, bet/raise/fold line frequencies, double/triple barrels, delayed lines, probe sequences, river overbet/block-bet, and response-by-sizing metrics.",
+  "acceptance_criteria": [
+    "Line metrics use legal opportunity denominators and documented street histories.",
+    "Sizing-conditioned metrics use canonical buckets plus raw amount filters.",
+    "Multiway exclusions/inclusions are explicit."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/stats/catalog/lines.py",
+    "tests/stats/test_line_catalog.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-STATS-CATALOG-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement advanced aggression and line-frequency metrics",
+    "size": "L",
+    "dependencies": [
+      "POKER-STATS-POSTFLOP-001"
+    ],
+    "priority_score": 4.0
+  }
+}

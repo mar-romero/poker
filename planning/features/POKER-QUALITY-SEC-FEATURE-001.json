@@ -1,0 +1,10 @@
+{
+  "id": "POKER-QUALITY-SEC-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Privacy and hardening",
+  "description": "Local-first data handling, safe plugins, input validation, crash recovery, and corrupt-data containment.",
+  "status": "approved",
+  "parent_id": "POKER-QUALITY-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

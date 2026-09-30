@@ -1,0 +1,10 @@
+{
+  "id": "POKER-QUALITY-EPIC-001",
+  "type": "EPIC",
+  "title": "Quality, performance, and hardening",
+  "description": "Golden corpora, property tests, end-to-end scenarios, benchmarks, native acceleration boundaries, and privacy/security hardening.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

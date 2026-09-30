@@ -1,0 +1,50 @@
+{
+  "id": "POKER-DECIDE-ACTIONS-001",
+  "description": "Generate check/fold/call/raise/all-in actions plus configurable geometric, pot-fraction, and strategy-specified sizings, respecting minimum raise and effective stacks.",
+  "acceptance_criteria": [
+    "Every generated action is legal under the state machine.",
+    "Duplicate-equivalent sizings are canonicalized.",
+    "All-in and short-stack min-raise edge cases are tested."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/decision/actions.py",
+    "tests/decision/test_actions.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-DECIDE-ACTIONS-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Generate legal candidate actions and sizings",
+    "size": "M",
+    "dependencies": [
+      "POKER-DECIDE-SPOT-001"
+    ],
+    "priority_score": 4.0
+  }
+}

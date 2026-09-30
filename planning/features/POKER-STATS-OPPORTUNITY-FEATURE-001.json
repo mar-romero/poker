@@ -1,0 +1,10 @@
+{
+  "id": "POKER-STATS-OPPORTUNITY-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Opportunity semantics engine",
+  "description": "Define denominators from legal opportunities rather than total-hand shortcuts.",
+  "status": "approved",
+  "parent_id": "POKER-STATS-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "POKER-DECIDE-EPIC-001",
+  "type": "EPIC",
+  "title": "Decision analysis engine",
+  "description": "Build current spots, generate legal actions/sizings, compare EV, recommend mixed strategies, and explain uncertainty.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

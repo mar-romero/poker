@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Harness Per-Agent Model Selection",
+  "type": "object",
+  "required": ["task_id", "provider", "agent", "model_class", "risk", "status", "action"],
+  "properties": {
+    "task_id": {"type": "string"},
+    "provider": {"type": "string"},
+    "agent": {"type": "string"},
+    "model_class": {"type": "string"},
+    "risk": {"enum": ["R0", "R1", "R2", "R3"]},
+    "status": {"enum": ["selected", "inherit", "blocked"]},
+    "action": {"enum": ["use", "inherit", "block"]},
+    "model_id": {"type": ["string", "null"]},
+    "base_model_id": {"type": ["string", "null"]},
+    "reasoning_effort": {"type": ["string", "null"]},
+    "score": {"type": ["number", "null"]},
+    "selection_strategy": {"type": "string"},
+    "minimum_coverage_threshold": {"type": ["number", "null"]},
+    "eligible_models": {"type": "integer", "minimum": 0},
+    "sufficient_models": {"type": "integer", "minimum": 0},
+    "target": {"type": "object"},
+    "requirements": {"type": "object"},
+    "score_breakdown": {"type": "object"},
+    "independence": {"type": "object"}
+  },
+  "additionalProperties": true
+}

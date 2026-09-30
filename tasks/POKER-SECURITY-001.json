@@ -1,0 +1,52 @@
+{
+  "id": "POKER-SECURITY-001",
+  "description": "Threat-model local API, parser/plugin inputs, corrupt strategy files, database recovery, path handling, exports, and crash consistency; implement validation and recovery controls.",
+  "acceptance_criteria": [
+    "Threat model identifies trust boundaries and mitigations.",
+    "Malformed/untrusted adapter or strategy data cannot execute arbitrary instructions through data paths.",
+    "Recovery procedures are tested against interrupted imports and corrupt artifacts."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": true,
+    "irreversible_change": false,
+    "security_boundary": true,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "docs/THREAT_MODEL.md",
+    "src/poker/security.py",
+    "tests/security"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-QUALITY-SEC-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Harden local data, plugins, and failure recovery",
+    "size": "L",
+    "dependencies": [
+      "POKER-ADAPTER-SDK-001",
+      "POKER-OBS-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,94 @@
+import sys
+import tempfile
+import unittest
+import json
+from pathlib import Path
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
+
+import task_checks
+
+
+class TaskChecksRunnerTests(unittest.TestCase):
+    def test_safe_env_pins_aci_python_without_forwarding_profile_variables(self):
+        project = Path('project')
+        for inherited_python in (None, 'untrusted-python'):
+            with self.subTest(inherited_python=inherited_python):
+                inherited = {
+                    'PATH': 'path-without-python',
+                    'USERPROFILE': 'private-profile',
+                    'APPDATA': 'private-appdata',
+                    'LOCALAPPDATA': 'private-localappdata',
+                }
+                if inherited_python is not None:
+                    inherited['HARNESS_ACI_PYTHON'] = inherited_python
+                with patch.dict(task_checks.os.environ, inherited, clear=True):
+                    env = task_checks._safe_env(project)
+                self.assertEqual(env, {
+                    'PATH': 'path-without-python',
+                    'PYTHONPATH': str(project / 'src'),
+                    'PYTHONDONTWRITEBYTECODE': '1',
+                    'HARNESS_ACI_PYTHON': sys.executable,
+                    'GIT_CONFIG_COUNT': '2',
+                    'GIT_CONFIG_KEY_0': 'safe.directory',
+                    'GIT_CONFIG_VALUE_0': str(project.resolve()),
+                    'GIT_CONFIG_KEY_1': 'safe.directory',
+                    'GIT_CONFIG_VALUE_1': str(project.resolve()),
+                })
+
+    def test_safe_env_disables_python_bytecode(self):
+        with tempfile.TemporaryDirectory() as td:
+            env = task_checks._safe_env(Path(td))
+        self.assertEqual(env['PYTHONDONTWRITEBYTECODE'], '1')
+
+    def test_syntax_check_does_not_create_pycache(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / 'src'
+            src.mkdir()
+            (src / 'good.py').write_text('VALUE = 1\n', encoding='utf-8')
+            result = task_checks._python_syntax_check(src)
+            self.assertEqual(result['status'], 'PASS')
+            self.assertEqual(result['files_checked'], 1)
+            self.assertFalse(any(src.rglob('__pycache__')))
+
+    def test_project_root_accepts_root_relative_tests_path(self):
+        task = {
+            'files': [
+                'scripts/task_checks.py',
+                'harness/models.json',
+                'tests/test_model_router.py',
+            ],
+        }
+        self.assertEqual(task_checks._project_root(task), Path('.'))
+
+    def test_codex_binding_uses_immutable_snapshot(self):
+        with tempfile.TemporaryDirectory() as td, patch.object(task_checks, 'ROOT', Path(td)):
+            root = Path(td)
+            snapshot = root / '.harness/runs/T/task.json'
+            snapshot.parent.mkdir(parents=True)
+            snapshot.write_text(json.dumps({'id': 'T', 'files': ['src/a.py']}), encoding='utf-8')
+            active = {
+                'task_id': 'T',
+                'task_snapshot_path': '.harness/runs/T/task.json',
+            }
+            with patch.object(task_checks, 'read_provider_active',
+                              side_effect=[active] + [None] * (len(task_checks.PROVIDERS) - 1)), \
+                 patch.object(task_checks, 'runtime_reference', return_value=snapshot):
+                task, path = task_checks._load_active_task('T')
+        self.assertEqual(task['id'], 'T')
+        self.assertEqual(path.name, 'task.json')
+
+    def test_runtime_consistency_rejects_stale_agent_budget_risk(self):
+        with tempfile.TemporaryDirectory() as td, patch.object(task_checks, 'ROOT', Path(td)), \
+             patch.object(task_checks, 'run_dir', return_value=Path(td) / '.harness/runs/T'):
+            run = Path(td) / '.harness/runs/T'
+            run.mkdir(parents=True)
+            (run / 'agent-budget.json').write_text(json.dumps({'risk': 'R2'}), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'agent budget risk R2 != route risk R3'):
+                task_checks._validate_runtime_consistency('T', {'risk': 'R3'})
+
+
+if __name__ == '__main__':
+    unittest.main()

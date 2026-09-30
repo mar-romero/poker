@@ -1,0 +1,10 @@
+{
+  "id": "POKER-LEARN-REPORTS-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Session and longitudinal reports",
+  "description": "Session summaries, trend dashboards, position/spot breakdowns, and exportable study queues.",
+  "status": "approved",
+  "parent_id": "POKER-LEARN-EPIC-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

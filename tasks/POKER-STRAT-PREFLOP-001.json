@@ -1,0 +1,52 @@
+{
+  "id": "POKER-STRAT-PREFLOP-001",
+  "description": "Store and query weighted preflop strategies by table format, stack, positions, prior action sequence, sizing, and game parameters.",
+  "acceptance_criteria": [
+    "Lookup supports open/call/3bet/4bet/jam/fold trees with mixed frequencies.",
+    "Missing exact stack/sizing returns explicit interpolation/fallback metadata rather than silent guessing.",
+    "Imported ranges are versioned with source/provenance."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": true,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/strategy/preflop.py",
+    "data/strategies/preflop/README.md",
+    "tests/strategy/test_preflop.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-STRAT-PREFLOP-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement preflop strategy lookup and range library",
+    "size": "M",
+    "dependencies": [
+      "POKER-STRAT-SCHEMA-001",
+      "POKER-RANGE-NOTATION-001"
+    ],
+    "priority_score": 4.0
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "POKER-SOLVER-EPIC-001",
+  "type": "EPIC",
+  "title": "Solver and re-solving research",
+  "description": "CFR-family correctness harness, abstraction, subgame solving, convergence measurement, and strategy compression.",
+  "status": "approved",
+  "parent_id": "POKER-INTELLIGENCE-PROJECT-001",
+  "dependencies": [],
+  "discovery_id": "POKER-INTELLIGENCE-001"
+}

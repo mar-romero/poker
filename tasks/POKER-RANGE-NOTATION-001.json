@@ -1,0 +1,50 @@
+{
+  "id": "POKER-RANGE-NOTATION-001",
+  "description": "Parse and format common poker notation such as 22+, A2s+, KQo, explicit combos, percentages, and weighted overrides into the canonical range model.",
+  "acceptance_criteria": [
+    "Parser round-trips supported notation deterministically.",
+    "Ambiguous or invalid notation produces precise errors.",
+    "Explicit combo weights override class defaults in a documented order."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/range/notation.py",
+    "tests/range/test_notation.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-RANGE-WEIGHTS-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement range notation parser and formatter",
+    "size": "S",
+    "dependencies": [
+      "POKER-RANGE-MODEL-001"
+    ],
+    "priority_score": 4.0
+  }
+}

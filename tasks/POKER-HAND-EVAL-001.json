@@ -1,0 +1,50 @@
+{
+  "id": "POKER-HAND-EVAL-001",
+  "description": "Implement or integrate a deterministic evaluator for high-card through straight flush, with canonical tie breakers and exhaustive category ordering tests.",
+  "acceptance_criteria": [
+    "All hand categories and tie-break rules match reference fixtures.",
+    "Seven-card evaluation selects the best five-card hand.",
+    "Randomized cross-checking against an independent oracle detects no mismatches in the configured test sample."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": true,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/cards/evaluator.py",
+    "tests/cards/test_evaluator.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-INTELLIGENCE-001",
+    "project_id": "POKER-INTELLIGENCE-PROJECT-001",
+    "parent_id": "POKER-RANGE-EVAL-FEATURE-001",
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-INTELLIGENCE-001.json"
+  },
+  "planning": {
+    "title": "Implement correct 5-card and 7-card hand evaluation",
+    "size": "M",
+    "dependencies": [
+      "POKER-CORE-MODEL-001"
+    ],
+    "priority_score": 4.0
+  }
+}
