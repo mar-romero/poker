@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 CODEX_CONFIG = ROOT / ".codex" / "config.toml"
-DESKTOP_CHECKOUT = Path(r"C:\Users\romer\Documents\GitHub\harnes")
+DESKTOP_CHECKOUT = Path(r"C:\Users\romer\Documents\GitHub\poker")
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import aci_core

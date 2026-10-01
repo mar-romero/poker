@@ -3,7 +3,7 @@ command = "powershell.exe"
 # Codex passes MCP `cwd` directly to the child process; Desktop does not resolve
 # it relative to this file. Update this path after moving or cloning the checkout.
 args = ["-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", "scripts/start_aci_mcp.ps1"]
-cwd = "C:\\Users\\romer\\Documents\\GitHub\\harnes"
+cwd = "C:\\Users\\romer\\Documents\\GitHub\\poker"
 enabled = true
 required = true
 startup_timeout_sec = 30
