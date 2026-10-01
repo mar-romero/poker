@@ -45,10 +45,30 @@ def route(task):
     bug=bool(_factor(task,'bug_fix') or re.search(r'\b(bug|error|exception|fail|broken|regression|incorrect|falla|fallo|roto|incorrect[oa])\b',text))
     external=bool(_factor(task,'external_contract') or re.search(r'\b(api|sdk|library|protocol|provider|dependency|version|biblioteca|protocolo|proveedor|dependencia|versi[oó]n)\b',text))
     security=bool(any(_factor(task,x) for x in ['touches_auth','uses_secrets','security_boundary']) or re.search(r'\b(auth|security|secret|credential|permission|token|xss|sql injection|csrf|seguridad|secreto|credencial|permiso|autenticaci[oó]n|autorizaci[oó]n)\b',text))
+    poker_domain=bool(re.search(r'\b(poker|hold.?em|holdem|nlhe)\b|src/poker|tests/(?:math|equity|range|solver|decision|stats|opponent|features)',text))
+    quantitative=bool(poker_domain and (_factor(task,'important_calculation') or re.search(r'\b(probabilit|statistic|bayes|posterior|credible|confidence interval|variance|monte[ -]?carlo|simulation|equity|expected value|ev|pot odds|fold equity|mdf|spr|combinator|numerical|precision|calibrat|brier|regret)\b',text)))
+    analytics=bool(poker_domain and (re.search(r'\b(analytics?|statistics?|metrics?|feature|aggregate|report|population|warehouse|etl|materiali[sz]|opportunit|denominator|lineage)\b',text) or (re.search(r'\b(schema|database|query|ingest)\b',text) and re.search(r'(?:src/poker|tests)/(?:data|stats|features|reports)',text))))
+    data_science=bool(poker_domain and re.search(r'\b(data science|opponent model|population model|predictive model|probabilistic model|bayes|posterior|prior|calibrat|brier|archetype|cluster|drift|change[- ]?point|change detection|recency|prediction|classifier|uncertainty)\b',text))
+    strategy=bool(poker_domain and re.search(r'\b(decision|strategy|solver|cfr\+?|game theory|gto|exploit|range|equity|blocker|board texture|expected value|pot odds|fold equity|mdf|spr|action policy|exploitability|best response)\b',text))
+    monte_carlo=bool(poker_domain and re.search(r'\b(monte[ -]?carlo|simulation|stochastic sampling)\b',text))
+    game_theory=bool(poker_domain and re.search(r'\b(cfr\+?|counterfactual regret|game theory|gto|solver|exploitability|best response|regret matching)\b',text))
+    durable_decision=bool(risk!='R0' and not re.search(r'\b(typo|formatting only|whitespace only|generated file refresh)\b',text))
     agents=['explorer']; skills=['task-intake','grounded-evidence']
+    if durable_decision:
+        agents.append('decision-journaler'); skills.append('decision-journal')
     if risk!='R0': agents.append('planner')
     if bug: agents.append('debugger'); skills += ['debugging','systemic-defect-triage']
     if external: agents.append('docs-researcher'); skills.append('source-research')
+    if quantitative:
+        agents.append('quantitative-analyst'); skills += ['quantitative-poker-math','probability-statistics','numerical-validation']
+        if monte_carlo: skills.append('monte-carlo-simulation')
+    if analytics:
+        agents.append('analytics-engineer'); skills += ['data-analytics-engineering','poker-domain-analysis']
+    if data_science:
+        agents.append('data-scientist'); skills += ['data-science-modeling','experiment-design-calibration','probability-statistics']
+    if strategy:
+        agents.append('poker-strategy-analyst'); skills += ['poker-domain-analysis','poker-range-equity','decision-theory','quantitative-poker-math']
+        if game_theory: skills.append('game-theory-cfr')
     # HARNESS_ADAPTIVE_TDD_ROUTE
     tdd=tdd_profile(task,risk=risk,text=text,bug=bug,external=external,security=security)
     if tdd.get('test_designer'):

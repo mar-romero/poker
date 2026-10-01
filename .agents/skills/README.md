@@ -11,6 +11,17 @@ This folder contains reusable process contracts selected by task route and role.
 - `code-quality/`: correctness, clarity, security, and maintainability review.
 - `cognitive-doc-design/`: documentation structure and retrieval guidance.
 - `context-engineering/`: bounded context-pack construction.
+- `data-analytics-engineering/`: analytical grain, semantic metrics, lineage and reproducible aggregation.
+- `data-science-modeling/`: leakage-safe probabilistic modeling, calibration and drift.
+- `decision-theory/`: explicit EV trees, uncertainty and sensitivity.
+- `experiment-design-calibration/`: reproducible backtests, holdouts and calibration.
+- `game-theory-cfr/`: CFR/CFR+, best response, exploitability and abstraction validation.
+- `monte-carlo-simulation/`: reproducible stochastic estimation and convergence checks.
+- `numerical-validation/`: precision, tolerances, invariants and independent numerical oracles.
+- `poker-domain-analysis/`: poker state, legal opportunities and deterministic semantics.
+- `poker-range-equity/`: combo-weighted ranges, blockers, conditioning and equity.
+- `probability-statistics/`: estimators, Bayesian updates, uncertainty and calibration.
+- `quantitative-poker-math/`: pot geometry, odds, EV, sizing, stacks and combinatorics.
 - `debugging/`: reproduction and hypothesis discrimination.
 - `decision-escalation/`: human escalation for material decisions.
 - `domain-modeling/`: vocabulary, relationships, and invariants.
@@ -44,3 +55,5 @@ This folder contains reusable process contracts selected by task route and role.
 - `worktree-isolation/`: single-writer worktree rules.
 - `SKILL.md` in each skill folder: the authoritative contract for that skill.
 - `REFERENCE.md` and `references/`: optional detailed material for selected skills.
+
+- `decision-journal/`: evidence-backed ADRs with simple explanations, lessons, alternatives, trade-offs and interview-ready rationale.

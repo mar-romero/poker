@@ -4,7 +4,12 @@
     "explorer",
     "planner",
     "debugger",
-    "docs-researcher"
+    "docs-researcher",
+    "quantitative-analyst",
+    "analytics-engineer",
+    "data-scientist",
+    "poker-strategy-analyst",
+    "decision-journaler"
   ],
   "gate_agents": [
     "reviewer",
@@ -18,7 +23,12 @@
   ],
   "initial": {
     "always_if_routed": [
-      "explorer"
+      "explorer",
+      "quantitative-analyst",
+      "analytics-engineer",
+      "data-scientist",
+      "poker-strategy-analyst",
+      "decision-journaler"
     ],
     "planner_risks": [
       "R2",

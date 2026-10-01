@@ -102,6 +102,7 @@
         "task-intake",
         "architecture-decision",
         "change-impact-analysis",
+        "decision-journal",
         "agent-computer-interface"
       ],
       "model_class": "reasoning",
@@ -139,6 +140,7 @@
         "code-quality",
         "implementation-loop",
         "evidence-ledger",
+        "decision-journal",
         "agent-computer-interface"
       ],
       "model_class": "coding",
@@ -158,6 +160,7 @@
         "change-impact-analysis",
         "code-quality",
         "grounded-evidence",
+        "decision-journal",
         "agent-computer-interface"
       ],
       "model_class": "reasoning",
@@ -225,6 +228,81 @@
       "model_class": "reasoning",
       "max_turns": 24
     },
+    "quantitative-analyst": {
+      "description": "Independently validate formulas, probability/statistics, simulation and numerical correctness for quantitative poker work.",
+      "mode": "read-only",
+      "capabilities": [
+        "quantitative-analysis",
+        "probability-analysis",
+        "numerical-validation"
+      ],
+      "skills": [
+        "quantitative-poker-math",
+        "probability-statistics",
+        "numerical-validation",
+        "monte-carlo-simulation",
+        "grounded-evidence",
+        "agent-computer-interface"
+      ],
+      "model_class": "reasoning",
+      "max_turns": 22
+    },
+    "analytics-engineer": {
+      "description": "Independently validate analytical grain, metric semantics, opportunity denominators, lineage and data quality.",
+      "mode": "read-only",
+      "capabilities": [
+        "data-analytics",
+        "metric-design",
+        "data-quality"
+      ],
+      "skills": [
+        "data-analytics-engineering",
+        "poker-domain-analysis",
+        "grounded-evidence",
+        "change-impact-analysis",
+        "agent-computer-interface"
+      ],
+      "model_class": "reasoning",
+      "max_turns": 20
+    },
+    "data-scientist": {
+      "description": "Independently validate probabilistic modeling, leakage controls, calibration, priors, drift and experimental design.",
+      "mode": "read-only",
+      "capabilities": [
+        "data-science",
+        "model-validation",
+        "calibration-analysis"
+      ],
+      "skills": [
+        "data-science-modeling",
+        "probability-statistics",
+        "experiment-design-calibration",
+        "grounded-evidence",
+        "agent-computer-interface"
+      ],
+      "model_class": "reasoning",
+      "max_turns": 22
+    },
+    "poker-strategy-analyst": {
+      "description": "Independently validate poker-state, ranges, equity/EV decision logic, exploit assumptions and game-theory solver semantics.",
+      "mode": "read-only",
+      "capabilities": [
+        "poker-strategy-analysis",
+        "game-theory-analysis",
+        "decision-analysis"
+      ],
+      "skills": [
+        "poker-domain-analysis",
+        "poker-range-equity",
+        "decision-theory",
+        "game-theory-cfr",
+        "quantitative-poker-math",
+        "grounded-evidence",
+        "agent-computer-interface"
+      ],
+      "model_class": "reasoning",
+      "max_turns": 24
+    },
     "verifier": {
       "description": "Independently verify observable acceptance criteria on the frozen candidate.",
       "mode": "read-only",
@@ -242,6 +320,23 @@
       ],
       "model_class": "reasoning",
       "max_turns": 20
+    },
+    "decision-journaler": {
+      "description": "Identify durable engineering and quantitative decisions that require evidence-backed ADR/learning documentation.",
+      "mode": "read-only",
+      "capabilities": [
+        "decision-documentation",
+        "architecture-rationale",
+        "learning-explanation"
+      ],
+      "skills": [
+        "decision-journal",
+        "grounded-evidence",
+        "change-impact-analysis",
+        "agent-computer-interface"
+      ],
+      "model_class": "reasoning",
+      "max_turns": 18
     }
   },
   "providers": {
@@ -276,7 +371,7 @@
       "model_policy": "inherit"
     }
   },
-  "release_version": "4.1.0-aci-overlay",
+  "release_version": "4.2.0-poker-quant-overlay",
   "canonical_agent_language": "en",
   "features": {
     "request_normalization": "strict-original-plus-canonical-english",

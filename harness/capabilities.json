@@ -26,6 +26,21 @@
     ],
     "verification": [
       "verifier"
+    ],
+    "quantitative-analysis": [
+      "quantitative-analyst"
+    ],
+    "data-analytics": [
+      "analytics-engineer"
+    ],
+    "data-science": [
+      "data-scientist"
+    ],
+    "poker-strategy-analysis": [
+      "poker-strategy-analyst"
+    ],
+    "decision-documentation": [
+      "decision-journaler"
     ]
   },
   "invariants": {
@@ -40,7 +55,12 @@
       "test-auditor",
       "docs-researcher",
       "debugger",
-      "verifier"
+      "verifier",
+      "quantitative-analyst",
+      "analytics-engineer",
+      "data-scientist",
+      "poker-strategy-analyst",
+      "decision-journaler"
     ]
   }
 }

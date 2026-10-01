@@ -181,6 +181,43 @@
           "tool_use": -0.4,
           "reliability": -0.3
         }
+      },
+      {
+        "name": "quantitative",
+        "pattern": "\\b(probabilit|statistics?|statistical|bayes|posterior|monte[ -]?carlo|equity|expected value|ev|variance|credible|confidence interval|calibrat|combinator|pot odds|fold equity|mdf|spr|numerical|precision)\\b",
+        "delta": {
+          "reasoning": 1.1,
+          "coding": 0.3,
+          "reliability": 1.0
+        }
+      },
+      {
+        "name": "data-analytics",
+        "pattern": "\\b(analytics?|metric|aggregate|feature|semantic layer|olap|report|population|opportunit|denominator|lineage|materiali[sz])\\b",
+        "delta": {
+          "reasoning": 0.6,
+          "coding": 0.4,
+          "tool_use": 0.3,
+          "reliability": 0.7
+        }
+      },
+      {
+        "name": "data-science",
+        "pattern": "\\b(data science|modeling|calibrat|brier|drift|change[- ]?point|clustering|archetype|prediction|classifier|prior|posterior|recency weighting)\\b",
+        "delta": {
+          "reasoning": 1.0,
+          "coding": 0.2,
+          "reliability": 1.0
+        }
+      },
+      {
+        "name": "game-theory",
+        "pattern": "\\b(game theory|gto|cfr\\+?|counterfactual regret|exploitability|best response|solver|regret matching)\\b",
+        "delta": {
+          "reasoning": 1.3,
+          "coding": 0.4,
+          "reliability": 1.0
+        }
       }
     ],
     "structured_factor_deltas": {
@@ -315,6 +352,36 @@
       "coding": 0.5,
       "tool_use": 0.4,
       "reliability": 0.9
+    },
+    "quantitative-analyst": {
+      "reasoning": 1.2,
+      "coding": -0.5,
+      "tool_use": 0.2,
+      "reliability": 1.2
+    },
+    "analytics-engineer": {
+      "reasoning": 0.8,
+      "coding": 0.1,
+      "tool_use": 0.6,
+      "reliability": 0.9
+    },
+    "data-scientist": {
+      "reasoning": 1.1,
+      "coding": 0.1,
+      "tool_use": 0.4,
+      "reliability": 1.1
+    },
+    "poker-strategy-analyst": {
+      "reasoning": 1.2,
+      "coding": -0.3,
+      "tool_use": 0.2,
+      "reliability": 1.1
+    },
+    "decision-journaler": {
+      "reasoning": 1.0,
+      "coding": -0.8,
+      "tool_use": 0.2,
+      "reliability": 1.0
     }
   },
   "scoring": {
@@ -464,7 +531,6 @@
     "prefer_provider_native_on_exact_tie": true,
     "deterministic_tie_break": "model_id_ascending",
     "unknown_capability_is_zero": true,
-    "strategy": "minimum_sufficient",
     "minimum_sufficient": {
       "target_ratio": 0.9,
       "fallback_by_risk": {

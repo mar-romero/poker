@@ -2,6 +2,10 @@
 
 This folder contains the provider-neutral role contracts used by the orchestrator.
 
+- `analytics-engineer.md`: audits analytical grain, metric semantics, lineage and data quality.
+- `data-scientist.md`: audits model methodology, leakage, calibration and drift.
+- `poker-strategy-analyst.md`: audits poker-state, range, decision and game-theory correctness.
+- `quantitative-analyst.md`: audits formulas, probability, statistics, simulation and numerical correctness.
 - `debugger.md`: reproduces failures and isolates root causes.
 - `docs-researcher.md`: researches authoritative external documentation.
 - `explorer.md`: maps repository structure, risks, and evidence.
@@ -14,3 +18,5 @@ This folder contains the provider-neutral role contracts used by the orchestrato
 - `test-designer.md`: designs independent behavioral and boundary cases.
 - `verifier.md`: independently verifies observable acceptance criteria.
 - `README.md`: describes the contract of this folder.
+
+- `decision-journaler.md`: read-only auditor for durable ADR/learning documentation and rationale quality.

@@ -49,6 +49,14 @@ POLICY_PATH = ROOT / "harness" / "neutral-chat-policy.json"
 PARALLEL_POLICY_PATH = ROOT / "harness" / "parallel-policy.json"
 HANDOFF_POLICY = ROOT / "harness" / "handoff-policy.json"
 
+SPECIALIST_SUPPORT_INSTRUCTIONS = {
+    "decision-journaler": "Identify the durable decisions this task should document for learning and portfolio evidence. Ignore trivial implementation choices. For each material decision give context, chosen direction, alternatives, trade-offs, validation evidence, a plain-language explanation, interview framing and revisit conditions. The implementer remains the only writer and must use the decision-journal skill to create/update docs/decisions/*.md.",
+    "quantitative-analyst": "Audit the quantitative contract for this task: formulas, probability/statistics, units, assumptions, numerical stability, uncertainty and independent reference oracles. Focus on defects that would make a mathematically plausible implementation wrong.",
+    "analytics-engineer": "Audit the analytical contract for this task: event grain, numerator/denominator semantics, legal opportunities, lineage, idempotence, recomputation, data quality and query reproducibility.",
+    "data-scientist": "Audit the modeling/experiment contract for this task: target, feature-time availability, leakage, priors, calibration, uncertainty, split design, drift and baseline/ablation requirements.",
+    "poker-strategy-analyst": "Audit poker and game-theory semantics for this task: legal state/actions, pot and stack geometry, ranges/blockers, branch conditioning, EV decomposition, GTO-versus-exploit assumptions, and solver correctness where relevant.",
+}
+
 _PROVIDER_SEMAPHORES: dict[tuple[str, int], threading.BoundedSemaphore] = {}
 _PROVIDER_SEMAPHORES_LOCK = threading.Lock()
 
@@ -800,6 +808,9 @@ def run_to_completion(task_path: Path, *, io: RunnerIO | None = None, providers:
     route = json.loads((run_dir(task_id) / "route.json").read_text(encoding="utf-8"))
     if "docs-researcher" in route.get("agents", []):
         run_support_agent(task_id, "docs-researcher", "Resolve external contract/version uncertainty needed for this task. Prefer authoritative sources exposed by the runtime; if unavailable, state the limitation.", io=io)
+    for specialist_role, specialist_instruction in SPECIALIST_SUPPORT_INSTRUCTIONS.items():
+        if specialist_role in route.get("agents", []):
+            run_support_agent(task_id, specialist_role, specialist_instruction, io=io)
 
     while True:
         state = load_progress(task_id)
