@@ -497,6 +497,26 @@ def _ensure_dynamic_agent_models(task: str, route: dict, added_agents: list[str]
     payload["selections"] = selections
     write_json_atomic(models_path, payload)
     active_path = provider_active_path(provider)
+    # Refresh the overlay binding BEFORE the validating read below: the rewrite
+    # above changed the selections file, and read_provider_active ->
+    # validate_provider_active compares the binding's recorded
+    # model_selections_sha256 against the current file bytes. Skipping this
+    # refresh poisoned the binding permanently (regression
+    # POKER-TEST-FIXTURE-HYGIENE-001). A raw read is used deliberately: the
+    # binding is by definition stale here and must be updated, not validated,
+    # before enrichment is trustworthy.
+    binding = None
+    if active_path.is_file():
+        try:
+            binding = json.loads(active_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            binding = None
+    if (isinstance(binding, dict) and binding.get("task_id") == task
+            and binding.get("provider") == provider):
+        binding["selections"] = selections
+        binding["agents"] = route.get("agents", [])
+        binding["model_selections_sha256"] = sha256_file(models_path)
+        write_json_atomic(active_path, binding)
     active = read_provider_active(provider)
     if active is not None:
         if active.get("task_id") == task:
