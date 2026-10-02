@@ -1,0 +1,48 @@
+{
+  "id": "POKER-TEST-FIXTURE-HYGIENE-001",
+  "description": "Fix tests/test_opencode_integration.py::test_activate_task_writes_runtime_binding so it captures the pre-state of model-selections.json and restores it in the finally block, with a regression assertion that the runtime overlay is byte-identical after the test runs.",
+  "acceptance_criteria": [
+    "The test captures the pre-state of model-selections.json (bytes or sha256) before the subprocess activation runs.",
+    "The finally block restores model-selections.json to that pre-state, including the case where the file did not exist before.",
+    "A new regression assertion verifies the restoration (fails before the fix, passes after it).",
+    "After running the test module, no TEST-OPENCODE payload remains in any real overlay file and every pre-existing overlay file is byte-identical (permission audit append-only excepted)."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": true
+  },
+  "files": [
+    "tests/test_opencode_integration.py"
+  ],
+  "tags": [
+    "derived-work",
+    "product-discovery"
+  ],
+  "origin": {
+    "kind": "derived_from_approved_discovery",
+    "discovery_id": "POKER-TEST-FIXTURE-HYGIENE-001",
+    "project_id": null,
+    "parent_id": null,
+    "source_language": "es",
+    "source_request_preserved_at": "planning/discovery/POKER-TEST-FIXTURE-HYGIENE-001.json"
+  },
+  "planning": {
+    "title": "Restore model-selections.json in test_activate_task_writes_runtime_binding",
+    "size": "S",
+    "dependencies": [],
+    "priority_score": 3.5
+  }
+}

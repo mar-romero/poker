@@ -1,6 +1,6 @@
 {
   "id": "POKER-CORE-MODEL-001",
-  "description": "Implement immutable canonical domain types for cards, players, seats, positions, blind/ante configuration, chip amounts, streets, actions, pots, and table metadata. Enforce serialization stability and explicit units.",
+  "description": "Activate the task flow and execute the first task in this repository (POKER-CORE-MODEL-001): implement immutable canonical domain types for cards, players, seats, positions, blind/ante configuration, chip amounts, streets, actions, pots, and table metadata, with serialization stability and explicit units.",
   "acceptance_criteria": [
     "Card identity is unique and validated for a standard 52-card deck.",
     "Chip/money values never use binary float for authoritative amounts.",
@@ -47,5 +47,46 @@
     "size": "S",
     "dependencies": [],
     "priority_score": 4.0
+  },
+  "request": {
+    "original_text": "Implement immutable canonical domain types for cards, players, seats, positions, blind/ante configuration, chip amounts, streets, actions, pots, and table metadata. Enforce serialization stability and explicit units.",
+    "original_language": "es",
+    "canonical_english": "Activate the task flow and execute the first task in this repository (POKER-CORE-MODEL-001): implement immutable canonical domain types for cards, players, seats, positions, blind/ante configuration, chip amounts, streets, actions, pots, and table metadata, with serialization stability and explicit units.",
+    "translation": {
+      "equivalence_claim": "EXACT_INTENT",
+      "back_translation": "Activate the flow to carry out the first task in this repository (POKER-CORE-MODEL-001).",
+      "validation": {
+        "ok": true,
+        "issues": [],
+        "source_invariants": {
+          "code_blocks": [],
+          "urls": [],
+          "file_paths": [
+            "blind/ante"
+          ],
+          "numbers": [],
+          "identifiers": [],
+          "quoted_literals": [],
+          "has_negation": false,
+          "has_strict_constraint": false
+        },
+        "canonical_invariants": {
+          "code_blocks": [],
+          "urls": [],
+          "file_paths": [
+            "blind/ante"
+          ],
+          "numbers": [
+            "001"
+          ],
+          "identifiers": [
+            "POKER-CORE-MODEL-001"
+          ],
+          "quoted_literals": [],
+          "has_negation": false,
+          "has_strict_constraint": false
+        }
+      }
+    }
   }
 }
