@@ -3,7 +3,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
-from harnesslib import provider_active_path, provider_enriched_inventory_path, runtime_root
+from harnesslib import provider_active_path, provider_enriched_inventory_path, provider_model_selections_path, runtime_root
 from compile_harness import generated
 
 class OpenCodeIntegrationTests(unittest.TestCase):
@@ -206,6 +206,10 @@ try {
                 local_path.unlink()
         held_active=active.read_bytes() if active.exists() else None
         active.unlink(missing_ok=True)
+        # Quarantine the pre-state of the runtime model-selection binding so
+        # the fixture's activation writes do not survive the test run.
+        selections=provider_model_selections_path('opencode')
+        held_selections=selections.read_bytes() if selections.exists() else None
         task.parent.mkdir(parents=True, exist_ok=True)
 
         task.write_text(json.dumps({
@@ -287,10 +291,36 @@ try {
             if held_active is not None:
                 active.parent.mkdir(parents=True,exist_ok=True)
                 active.write_bytes(held_active)
+            if held_selections is None:
+                selections.unlink(missing_ok=True)
+            else:
+                selections.parent.mkdir(parents=True,exist_ok=True)
+                selections.write_bytes(held_selections)
 
             if old_inventory is None:
                 inventory.unlink(missing_ok=True)
             else:
                 inventory.write_text(old_inventory)
             quarantine.cleanup()
+
+        # Regression: the activation fixture must leave the runtime
+        # model-selection binding byte-identical to its pre-state
+        # (including the file-absent case).
+        if held_selections is None:
+            self.assertFalse(
+                selections.exists(),
+                'activation fixture left a new model-selections.json behind',
+            )
+        else:
+            self.assertEqual(
+                selections.read_bytes(),
+                held_selections,
+                'model-selections.json was not restored byte-identically',
+            )
+        if selections.exists():
+            self.assertNotIn(
+                'TEST-OPENCODE',
+                selections.read_text(),
+                'model-selections.json still contains the TEST-OPENCODE fixture payload',
+            )
 if __name__=='__main__': unittest.main()
