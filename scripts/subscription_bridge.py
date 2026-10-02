@@ -25,8 +25,8 @@ sys.path.insert(0, str(SCRIPTS))
 from harnesslib import (  # noqa: E402
     assert_overlay_writable, load_manifest, provider_active_path, provider_inventory_path,
     provider_model_selections_path, read_provider_active, run_dir, runtime_reference,
-    runtime_root, safe_task_id, sha256_file, worktree_identity, write_json_atomic,
-    write_json_immutable, adopt_json_immutable,
+    runtime_root, run_with_tree_kill, safe_task_id, sha256_file, worktree_identity,
+    write_json_atomic, write_json_immutable, adopt_json_immutable,
 )
 from task_router import route  # noqa: E402
 from request_normalizer import normalize_task  # noqa: E402
@@ -65,13 +65,18 @@ def load_config() -> dict[str, Any]:
 def _run_status(argv: list[str], provider: str, timeout: int = 12) -> tuple[int, str]:
     env, _ = sanitized_environment(provider)
     try:
-        proc = subprocess.run(
-            argv, cwd=ROOT, env=env, text=True, encoding='utf-8',
-            errors='replace', capture_output=True, timeout=timeout, check=False,
-        )
-        return proc.returncode, (proc.stdout + "\n" + proc.stderr).strip()
-    except (OSError, subprocess.TimeoutExpired) as exc:
+        # Deadline-enforced run with a whole-process-tree kill on expiry: a
+        # shim (cmd.exe/powershell) can exit while a grandchild keeps the pipe
+        # write-ends open, which would otherwise hang communicate() forever
+        # and leave a busy-looping orphan behind.
+        code, stdout, stderr = run_with_tree_kill(argv, cwd=ROOT, env=env, timeout=timeout)
+    except OSError as exc:
         return 124, str(exc)
+    if code is None:
+        code = 124
+        if not stderr:
+            stderr = f"timed out after {timeout}s; process tree killed"
+    return code, (stdout + "\n" + stderr).strip()
 
 
 def doctor_provider(provider: str) -> dict[str, Any]:
