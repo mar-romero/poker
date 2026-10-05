@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "discovery_id": "POKER-TEST-FIXTURE-HYGIENE-001",
+  "status": "approved",
+  "classification": "TASK",
+  "title": "Make test_activate_task_writes_runtime_binding restore every runtime file it mutates",
+  "refined_problem": "tests/test_opencode_integration.py::test_activate_task_writes_runtime_binding saves and restores active-task.json, legacy provider files and enriched-inventory.json, but never restores model-selections.json. Running the test against the real shared runtime leaves the live overlay's model-selections.json overwritten with the TEST-OPENCODE test payload, which then fails every subsequent provider-binding validation with 'provider model selections task mismatch' and blocked the deterministic check runner of an unrelated in-flight task. The fixture must be fully side-effect free.",
+  "original_request": {
+    "text": "El código de ese test tiene un descuido real que conviene arreglar: que restaure todos los archivos que toca. Puedo crear esa pequeña tarea de corrección después de terminar la actual, para que no le pase a nadie más. arregla esto",
+    "language": "es"
+  },
+  "target_users": [
+    "harness operators running the unittest suite from any checkout or worktree",
+    "AI agents executing deterministic task checks against the shared runtime"
+  ],
+  "outcomes": [
+    "Running the full unittest suite or the single test_opencode_integration module no longer mutates the real provider overlay state.",
+    "Provider binding validation remains consistent across test runs, eliminating the 'provider model selections task mismatch' failure mode."
+  ],
+  "scope": {
+    "in": [
+      "tests/test_opencode_integration.py::test_activate_task_writes_runtime_binding fixture save/restore hygiene for model-selections.json",
+      "a regression assertion proving the restoration covers model-selections.json"
+    ],
+    "out": [
+      "changes to the activation scripts (scripts/providers/opencode_activate_task.py)",
+      "changes to any other test module",
+      "changes to harness policy or permission rules"
+    ]
+  },
+  "mvp": {
+    "goal": "The test restores every runtime file it mutates, including model-selections.json, with a regression check that fails before the fix and passes after it.",
+    "includes": [
+      "capture pre-state of model-selections.json next to the other saved files",
+      "restore it in the finally block alongside active-task.json and the legacy files",
+      "assert post-run byte-equality for the saved runtime files"
+    ],
+    "excludes": [
+      "reworking the whole integration fixture architecture",
+      "adding new dependencies"
+    ]
+  },
+  "success_metrics": [
+    "python -m unittest test_opencode_integration passes with the new regression assertion included",
+    "sha256 of every pre-existing file under .harness/overlays/<worktree-id>/opencode/ (except the append-only permission audit) is unchanged after running the module"
+  ],
+  "assumptions": [
+    "The provider overlay path is deterministic per worktree identity for the test process",
+    "Restoring model-selections.json bytes is sufficient; the enriched inventory and active-task.json restorations already exist"
+  ],
+  "open_questions": [],
+  "challenges": [
+    "The test already restores several files with subtle quarantine semantics; the fix must preserve those existing invariants"
+  ],
+  "work_items": [
+    {
+      "id": "POKER-TEST-FIXTURE-HYGIENE-FEATURE-001",
+      "type": "FEATURE",
+      "title": "Test fixture runtime-state hygiene",
+      "description": "Keep integration tests that exercise the real provider activation boundary fully side-effect free for the shared runtime state."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "POKER-TEST-FIXTURE-HYGIENE-001",
+      "title": "Restore model-selections.json in test_activate_task_writes_runtime_binding",
+      "description": "Fix tests/test_opencode_integration.py::test_activate_task_writes_runtime_binding so it captures the pre-state of model-selections.json and restores it in the finally block, with a regression assertion that the runtime overlay is byte-identical after the test runs.",
+      "acceptance_criteria": [
+        "The test captures the pre-state of model-selections.json (bytes or sha256) before the subprocess activation runs.",
+        "The finally block restores model-selections.json to that pre-state, including the case where the file did not exist before.",
+        "A new regression assertion verifies the restoration (fails before the fix, passes after it).",
+        "After running the test module, no TEST-OPENCODE payload remains in any real overlay file and every pre-existing overlay file is byte-identical (permission audit append-only excepted)."
+      ],
+      "dependencies": [],
+      "files": [
+        "tests/test_opencode_integration.py"
+      ],
+      "size": "S",
+      "risk_factors": {
+        "touches_auth": false,
+        "touches_production": false,
+        "uses_secrets": false,
+        "destructive_operation": false,
+        "irreversible_change": false,
+        "security_boundary": false,
+        "schema_change": false,
+        "database_change": false,
+        "concurrency": false,
+        "financial": false,
+        "external_contract": false,
+        "migration": false,
+        "persistence": false,
+        "important_calculation": false,
+        "bug_fix": true
+      },
+      "value": 3,
+      "risk_reduction": 4,
+      "urgency": 4,
+      "confidence": 5
+    }
+  ]
+}

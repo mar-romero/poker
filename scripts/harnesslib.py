@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path, PurePosixPath
-import fnmatch, hashlib, json, os, re, subprocess, sys, tempfile, uuid
+import fnmatch, hashlib, json, os, re, signal, subprocess, sys, tempfile, uuid
 from contextlib import contextmanager
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -611,3 +611,285 @@ def git(*args, cwd=None, check=True):
         ['git', *args], cwd=cwd or ROOT, text=True, encoding='utf-8',
         errors='replace', capture_output=True, check=check,
     )
+
+
+# --- Deadline-enforced child-process execution with tree-kill -----------------
+#
+# subprocess.run(timeout=...) is not safe for shim-style CLIs (cmd.exe /
+# powershell wrappers): the direct child can exit while a grandchild keeps the
+# stdout/stderr pipe write-ends open. CPython 3.12 then joins its pipe reader
+# threads unbounded (no EOF) inside the post-kill communicate() call, so the
+# timeout never surfaces and the caller hangs forever (diagnosed with py-spy
+# for the copilot.ps1 probe, see .harness/runs/POKER-TEST-FIXTURE-HYGIENE-001/
+# hang-diagnosis.txt).
+
+TIMEOUT_SENTINEL = None  # returned as returncode when the tree was killed
+
+_TREEKILL_REAP_GRACE = 10.0  # seconds to wait for pipes to close after a kill
+
+# CREATE_SUSPENDED: start the child frozen so it cannot spawn descendants
+# before we assign it to the Job Object (assignment-after-spawn races the
+# child's own first CreateProcess call and lets grandchildren escape the job).
+_CREATE_SUSPENDED = 0x00000004
+
+_THREAD_SUSPEND_RESUME = 0x0002
+_TH32CS_SNAPTHREAD = 0x00000004
+_INVALID_HANDLE_VALUE = -1
+
+
+def _kernel32():
+    """Private kernel32 instance: isolated argtypes, reliable use_last_error."""
+    import ctypes
+    return ctypes.WinDLL("kernel32", use_last_error=True)
+
+
+def _close_windows_job(popen_obj) -> None:
+    """Close the Job Object handle stashed on a Popen object, if any."""
+    job_handle = getattr(popen_obj, "_harness_job", None)
+    if not job_handle:
+        return
+    try:
+        from ctypes import wintypes
+        kernel32 = _kernel32()
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.CloseHandle(job_handle)
+    except Exception:
+        pass
+    popen_obj._harness_job = None
+
+
+def _kill_tree_windows(popen_obj) -> None:
+    """Kill a Windows process tree, including after the direct child exited.
+
+    Primary mechanism: the Job Object assigned at spawn time (see
+    run_with_tree_kill) — TerminateJobObject kills every descendant even when
+    the direct child shim already exited, which is exactly the orphan-holding-
+    pipes scenario that wedges communicate(). taskkill /F /T /PID is only used
+    when no Job Object was assigned: once the direct child has exited, its PID
+    may already have been reused by an unrelated process, and taskkill would
+    then kill an innocent tree. Last resort: kill the (possibly already dead)
+    direct child only.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = _kernel32()
+    job_handle = getattr(popen_obj, "_harness_job", None)
+    if job_handle:
+        kernel32.TerminateJobObject.argtypes = [wintypes.HANDLE, wintypes.UINT]
+        kernel32.TerminateJobObject.restype = wintypes.BOOL
+        kernel32.TerminateJobObject(job_handle, 1)
+        return
+
+    try:
+        proc = subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(popen_obj.pid)],
+            capture_output=True, check=False,
+        )
+        if proc.returncode == 0:
+            return
+    except OSError:
+        pass
+    try:
+        popen_obj.kill()
+    except OSError:
+        pass
+
+
+def _kill_tree_posix(popen_obj) -> None:
+    """Kill a POSIX process group (start_new_session=True at spawn)."""
+    try:
+        os.killpg(os.getpgid(popen_obj.pid), signal.SIGKILL)
+        return
+    except OSError:
+        pass
+    try:
+        popen_obj.kill()
+    except OSError:
+        pass
+
+
+def _assign_windows_job(popen_obj) -> bool:
+    """Assign a freshly created (suspended) child to a kill-on-close Job Object.
+
+    Job membership is inherited by every descendant spawned after the
+    assignment, so the tree can be terminated even after the direct child shim
+    exits. KILL_ON_JOB_CLOSE also makes survivors die with our own process if
+    we crash between spawn and CloseHandle. Returns True when the child is a
+    job member; on failure the caller falls back to taskkill.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    class _IO_COUNTERS(ctypes.Structure):
+        _fields_ = [(name, ctypes.c_ulonglong) for name in (
+            "ReadOperationCount", "WriteOperationCount", "OtherOperationCount",
+            "ReadTransferCount", "WriteTransferCount", "OtherTransferCount",
+        )]
+
+    class _BASIC_LIMIT_INFORMATION(ctypes.Structure):
+        _fields_ = [
+            ("PerProcessUserTimeLimit", ctypes.c_longlong),
+            ("MinimumWorkingSetSize", ctypes.c_size_t),
+            ("MaximumWorkingSetSize", ctypes.c_size_t),
+            ("ActiveProcessLimit", wintypes.DWORD),
+            ("Affinity", ctypes.c_size_t),
+            ("PriorityClass", wintypes.DWORD),
+            ("LimitFlags", wintypes.DWORD),
+        ]
+
+    class _EXTENDED_LIMIT_INFORMATION(ctypes.Structure):
+        _fields_ = [
+            ("BasicLimitInformation", _BASIC_LIMIT_INFORMATION),
+            ("IoInfo", _IO_COUNTERS),
+            ("ProcessMemoryLimit", ctypes.c_size_t),
+            ("JobMemoryLimit", ctypes.c_size_t),
+            ("PeakProcessMemoryUsed", ctypes.c_size_t),
+            ("PeakJobMemoryUsed", ctypes.c_size_t),
+        ]
+
+    kernel32 = _kernel32()
+    kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel32.CreateJobObjectW.argtypes = [wintypes.LPVOID, wintypes.LPCWSTR]
+    kernel32.SetInformationJobObject.argtypes = [
+        wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD,
+    ]
+    kernel32.SetInformationJobObject.restype = wintypes.BOOL
+    kernel32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    kernel32.AssignProcessToJobObject.restype = wintypes.BOOL
+
+    JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
+    JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
+
+    job_handle = kernel32.CreateJobObjectW(None, None)
+    if not job_handle:
+        return False
+    # Best-effort only: SetInformationJobObject is not required for
+    # TerminateJobObject to work, and some hosts reject it (observed
+    # ERROR_BAD_LENGTH with correct sizes). Failure here must not disable
+    # the tree-kill, so never bail out on it.
+    info = _EXTENDED_LIMIT_INFORMATION()
+    info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    if not kernel32.SetInformationJobObject(
+            job_handle, JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
+            ctypes.byref(info), ctypes.sizeof(info)):
+        pass
+    handle = int(getattr(popen_obj, "_handle", 0) or 0)
+    if not handle or not kernel32.AssignProcessToJobObject(job_handle, handle):
+        kernel32.CloseHandle(job_handle)
+        return False
+    popen_obj._harness_job = job_handle
+    return True
+
+
+def _resume_windows_process(pid: int) -> bool:
+    """Resume the (single, suspended) primary thread of a CREATE_SUSPENDED child."""
+    import ctypes
+    from ctypes import wintypes
+
+    class _THREADENTRY32(ctypes.Structure):
+        _fields_ = [
+            ("dwSize", wintypes.DWORD),
+            ("cntUsage", wintypes.DWORD),
+            ("th32ThreadID", wintypes.DWORD),
+            ("th32OwnerProcessID", wintypes.DWORD),
+            ("tpBasePri", wintypes.LONG),
+            ("tpDeltaPri", wintypes.LONG),
+            ("dwFlags", wintypes.DWORD),
+        ]
+
+    kernel32 = ctypes.windll.kernel32
+    kernel32.CreateToolhelp32Snapshot.restype = wintypes.HANDLE
+    kernel32.CreateToolhelp32Snapshot.argtypes = [wintypes.DWORD, wintypes.DWORD]
+    kernel32.Thread32First.argtypes = [wintypes.HANDLE, ctypes.POINTER(_THREADENTRY32)]
+    kernel32.Thread32Next.argtypes = [wintypes.HANDLE, ctypes.POINTER(_THREADENTRY32)]
+    kernel32.OpenThread.restype = wintypes.HANDLE
+    kernel32.OpenThread.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel32.ResumeThread.argtypes = [wintypes.HANDLE]
+    kernel32.ResumeThread.restype = wintypes.DWORD
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+
+    snapshot = kernel32.CreateToolhelp32Snapshot(_TH32CS_SNAPTHREAD, 0)
+    if snapshot in (None, _INVALID_HANDLE_VALUE):
+        return False
+    try:
+        entry = _THREADENTRY32()
+        entry.dwSize = ctypes.sizeof(_THREADENTRY32)
+        if not kernel32.Thread32First(snapshot, ctypes.byref(entry)):
+            return False
+        while True:
+            if entry.th32OwnerProcessID == pid:
+                thread = kernel32.OpenThread(_THREAD_SUSPEND_RESUME, False, entry.th32ThreadID)
+                if thread:
+                    try:
+                        return kernel32.ResumeThread(thread) != 0xFFFFFFFF
+                    finally:
+                        kernel32.CloseHandle(thread)
+                return False
+            if not kernel32.Thread32Next(snapshot, ctypes.byref(entry)):
+                return False
+    finally:
+        kernel32.CloseHandle(snapshot)
+
+
+def run_with_tree_kill(argv, cwd=None, env=None, timeout=None):
+    """Run argv capturing output under a hard deadline enforced with a tree kill.
+
+    Returns ``(returncode, stdout, stderr)`` where ``returncode`` is
+    ``TIMEOUT_SENTINEL`` (``None``) when the deadline expired and the whole
+    child tree was killed. On Windows the child is created suspended, assigned
+    to a Job Object, and only then resumed, so every descendant (including
+    ones spawned by shim grandchildren after the direct child exited) dies
+    with the tree at TerminateJobObject time. On POSIX launches run in a new
+    session/group and kill the whole group with SIGKILL.
+    """
+    popen_kwargs: dict = {
+        "cwd": cwd, "env": env,
+        "stdout": subprocess.PIPE, "stderr": subprocess.PIPE,
+    }
+    if os.name == "nt":
+        popen_kwargs["creationflags"] = _CREATE_SUSPENDED
+    else:
+        popen_kwargs["start_new_session"] = True
+    proc = subprocess.Popen(argv, **popen_kwargs)
+    if os.name == "nt":
+        resumed = False
+        try:
+            if _assign_windows_job(proc):
+                resumed = _resume_windows_process(proc.pid)
+        except Exception:
+            resumed = False
+        if not resumed:
+            # Never leave a frozen child behind: kill it and fall back to a
+            # plain spawn (taskkill remains the kill fallback in that mode).
+            _close_windows_job(proc)
+            try:
+                proc.kill()
+            except OSError:
+                pass
+            try:
+                proc.wait(timeout=5)
+            except Exception:
+                pass
+            popen_kwargs.pop("creationflags", None)
+            proc = subprocess.Popen(argv, **popen_kwargs)
+    try:
+        try:
+            stdout, stderr = proc.communicate(timeout=timeout)
+            out = (stdout or b"").decode("utf-8", errors="replace")
+            err = (stderr or b"").decode("utf-8", errors="replace")
+            return proc.returncode, out, err
+        except subprocess.TimeoutExpired:
+            if os.name == "nt":
+                _kill_tree_windows(proc)
+            else:
+                _kill_tree_posix(proc)
+            try:
+                stdout, stderr = proc.communicate(timeout=_TREEKILL_REAP_GRACE)
+            except (subprocess.TimeoutExpired, ValueError):
+                return TIMEOUT_SENTINEL, "", ""
+            out = (stdout or b"").decode("utf-8", errors="replace")
+            err = (stderr or b"").decode("utf-8", errors="replace")
+            return TIMEOUT_SENTINEL, out, err
+    finally:
+        _close_windows_job(proc)

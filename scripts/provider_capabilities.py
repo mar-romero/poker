@@ -6,9 +6,10 @@ features instead of assuming every installed CLI is the same version.
 """
 from __future__ import annotations
 
-import subprocess
 from functools import lru_cache
 from typing import Any
+
+from harnesslib import run_with_tree_kill
 
 
 def _help_argv(provider: str, executable: str) -> list[str]:
@@ -58,14 +59,21 @@ FEATURE_TOKENS: dict[str, dict[str, tuple[str, ...]]] = {
 @lru_cache(maxsize=32)
 def probe(provider: str, executable: str) -> dict[str, Any]:
     try:
-        proc = subprocess.run(
-            _help_argv(provider, executable), text=True, encoding="utf-8",
-            errors="replace", capture_output=True, timeout=8, check=False,
+        # Same deadline + tree-kill contract as subscription_bridge._run_status:
+        # shim grandchildren must not be able to wedge the probe forever.
+        code, out, err = run_with_tree_kill(
+            _help_argv(provider, executable), timeout=8,
         )
-        text = ((proc.stdout or "") + "\n" + (proc.stderr or "")).lower()
-        ok = proc.returncode == 0 or bool(text.strip())
     except Exception as exc:
         return {"probe_ok": False, "error": str(exc), "features": {}}
+    if code is None:
+        return {
+            "probe_ok": False,
+            "error": "probe timed out after 8s; process tree killed",
+            "features": {},
+        }
+    text = (out + "\n" + err).lower()
+    ok = code == 0 or bool(text.strip())
     features: dict[str, bool] = {}
     for name, tokens in FEATURE_TOKENS.get(provider, {}).items():
         features[name] = all(token.lower() in text for token in tokens)

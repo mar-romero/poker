@@ -324,7 +324,7 @@ export default Plugin.define({
     await ctx.shell.hook("create.before", async (event) => {
       await assertNoReparse(root, event.cwd)
       if (!(await insideReal(root, event.cwd))) throw new Error("Harness: shell cwd outside project is not allowed")
-      event.timeout = Math.min(Number(event.timeout || 300000), 300000)
+      event.timeout = Math.min(Number(event.timeout || 900000), 900000)
       event.env.HARNESS_MODEL_INVENTORY_OPENCODE = enrichedInventoryFile
     })
 

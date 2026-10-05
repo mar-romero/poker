@@ -4,6 +4,8 @@ import stat
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -204,6 +206,85 @@ class SubscriptionBridgeTests(unittest.TestCase):
         used = [x for x in selections if x.get("action") == "use"]
         self.assertTrue(used)
         self.assertTrue(all("/" in x["base_model_id"] for x in used))
+
+    def test_run_status_tree_kills_shim_grandchild_holding_pipes(self):
+        """Regression (POKER-TEST-FIXTURE-HYGIENE-001): a cmd/powershell shim
+        whose grandchild keeps the stdout/stderr pipe write-ends open must not
+        wedge _run_status forever.
+
+        CPython 3.12 subprocess.run(timeout=...) stops honoring its deadline
+        once the direct child exits, because the post-kill communicate()
+        joins the pipe reader threads unbounded while a surviving grandchild
+        holds the write-ends (no EOF). The probe must return around its
+        deadline, report a failed probe, and the whole child tree must die.
+        """
+        if os.name != "nt":
+            self.skipTest("Windows cmd/powershell shim grandchild repro")
+        from subscription_bridge import _run_status
+
+        with tempfile.TemporaryDirectory() as td:
+            pid_file = Path(td) / "grandchild-pid.txt"
+            argv = [
+                "cmd", "/c", "start", "/b", "", "powershell", "-NoProfile",
+                "-Command",
+                f"Set-Content -LiteralPath '{pid_file}' -Value $PID; "
+                "while($true){Start-Sleep -Seconds 1}",
+            ]
+            box: dict = {}
+
+            def target():
+                try:
+                    box["result"] = _run_status(argv, "copilot", timeout=2)
+                except BaseException as exc:  # pragma: no cover - surfaced below
+                    box["error"] = exc
+
+            watcher = threading.Thread(target=target, daemon=True, name="run-status-watchdog")
+            started = time.monotonic()
+            watcher.start()
+            watcher.join(15)
+            elapsed = time.monotonic() - started
+            orphan_pid = None
+            try:
+                # RED (pre-fix): _run_status never returns -> the watchdog
+                # deadline fires and this assertion fails with a clear message
+                # instead of hanging the whole suite.
+                self.assertFalse(
+                    watcher.is_alive(),
+                    "tree-kill not applied: _run_status did not return",
+                )
+                self.assertNotIn("error", box, f"_run_status raised: {box.get('error')!r}")
+                code, text = box["result"]
+                self.assertLess(elapsed, 8.0, f"_run_status returned too late ({elapsed:.1f}s)")
+                self.assertNotEqual(code, 0)
+                self.assertEqual(code, 124)
+            finally:
+                # Belt-and-braces cleanup for the pre-fix RED run: the
+                # grandchild writes its PID before busy-looping, so we can
+                # always kill it even if the tree-kill under test is absent.
+                try:
+                    if pid_file.is_file():
+                        orphan_pid = pid_file.read_text(encoding="utf-8").strip() or None
+                except OSError:
+                    pass
+                if orphan_pid:
+                    subprocess.run(["taskkill", "/F", "/PID", orphan_pid], capture_output=True)
+
+            if orphan_pid:
+                deadline = time.monotonic() + 5
+                still_alive = True
+                while time.monotonic() < deadline:
+                    chk = subprocess.run(
+                        ["tasklist", "/FI", f"PID eq {orphan_pid}"],
+                        capture_output=True, text=True,
+                    )
+                    if orphan_pid not in chk.stdout:
+                        still_alive = False
+                        break
+                    time.sleep(0.2)
+                self.assertFalse(
+                    still_alive,
+                    f"grandchild powershell pid {orphan_pid} survived the tree-kill",
+                )
 
     def _fake_cursor(self, directory: Path, mutate: bool) -> Path:
         mutation = "Path('mutated.txt').write_text('x')" if mutate else "pass"

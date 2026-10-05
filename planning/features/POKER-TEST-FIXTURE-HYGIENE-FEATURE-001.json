@@ -1,0 +1,7 @@
+{
+  "id": "POKER-TEST-FIXTURE-HYGIENE-FEATURE-001",
+  "type": "FEATURE",
+  "title": "Test fixture runtime-state hygiene",
+  "description": "Keep integration tests that exercise the real provider activation boundary fully side-effect free for the shared runtime state.",
+  "discovery_id": "POKER-TEST-FIXTURE-HYGIENE-001"
+}
