@@ -117,15 +117,27 @@ class CardTests(unittest.TestCase):
                 Card(rank, suit)
 
     def test_deck_shape(self):
+        # Oracle independence: the expected deck is built from alphabets pinned
+        # as LITERALS in this test, not from the production constants, so any
+        # alphabet substitution in cards.py is killed by this comparison.
+        RANK_ALPHABET = "23456789TJQKA"
+        SUIT_ALPHABET = "cdhs"
         self.assertIsInstance(DECK, tuple)
         self.assertEqual(len(DECK), 52)
         assert_unique_cards(DECK)
-        expected = tuple(Card(rank, suit) for rank in cards.RANKS for suit in cards.SUITS)
+        expected = tuple(Card(rank, suit) for rank in RANK_ALPHABET for suit in SUIT_ALPHABET)
         self.assertEqual(DECK, expected)
         self.assertEqual(
             {card.symbol for card in DECK},
-            {rank + suit for rank in cards.RANKS for suit in cards.SUITS},
+            {rank + suit for rank in RANK_ALPHABET for suit in SUIT_ALPHABET},
         )
+        # The production alphabets must match the pinned literals exactly
+        # (same members, same length), and ten must stay 'T', never '10'.
+        self.assertEqual(set(cards.RANKS), set(RANK_ALPHABET))
+        self.assertEqual(len(cards.RANKS), len(RANK_ALPHABET))
+        self.assertEqual(set(cards.SUITS), set(SUIT_ALPHABET))
+        self.assertEqual(len(cards.SUITS), len(SUIT_ALPHABET))
+        self.assertNotIn("10", cards.RANKS)
 
     def test_deck_read_twice_is_deterministic(self):
         self.assertEqual(tuple(DECK), tuple(cards.DECK))
@@ -544,6 +556,16 @@ class RoundTripTests(unittest.TestCase):
         self.assertEqual(restored[0], table)
         self.assertEqual(restored[1], actions)
         self.assertEqual(restored[2], pot)
+        restored_pot = restored[2]
+        self.assertEqual(
+            sum(value.value for value in restored_pot.contributions.values())
+            + restored_pot.rake.value,
+            restored_pot.total.value,
+        )
+        self.assertEqual(
+            sum(value.value for value in restored_pot.contributions.values()),
+            restored_pot.total.value - restored_pot.rake.value,
+        )
         recomposed = _compose(*restored)
         self.assertEqual(composite, recomposed)
         dumps = [json.dumps(composite, sort_keys=True)]
@@ -650,6 +672,113 @@ class ImmutabilityTests(unittest.TestCase):
         for obj in self._cases():
             with self.assertRaises(FrozenInstanceError):
                 setattr(obj, "nonexistent_attr", None)
+
+
+class HardeningTests(unittest.TestCase):
+    """Audit-gap pins (POKER-CORE-MODEL-001 hardening round).
+
+    These tests exist to freeze behaviors the production code already enforces
+    (nested schema-version checks, exact-key payload validation, strict enum
+    tokens, Chips typing and a literal deck alphabet) so future refactors
+    cannot silently drop them. Production files are not modified here.
+    """
+
+    def _player_payload(self) -> dict:
+        return Player("hero", Chips(20000)).to_dict()
+
+    def _seat_payload(self) -> dict:
+        return Seat(2).to_dict()
+
+    def _blinds_payload(self) -> dict:
+        return BlindAnteConfig(5, 10, 0).to_dict()
+
+    def _action_payload(self) -> dict:
+        return _call_action().to_dict()
+
+    def _table_payload(self) -> dict:
+        return _example_table().to_dict()
+
+    @staticmethod
+    def _drop(payload: dict, key: str) -> dict:
+        return {name: value for name, value in payload.items() if name != key}
+
+    @staticmethod
+    def _bump_version(payload: dict) -> dict:
+        return {**payload, "schema_version": game.SCHEMA_VERSION + 1}
+
+    def test_nested_version_pin_missing_and_wrong(self):
+        cases = (
+            ("Player", Player.from_dict, self._player_payload()),
+            ("Seat", Seat.from_dict, self._seat_payload()),
+            ("BlindAnteConfig", BlindAnteConfig.from_dict, self._blinds_payload()),
+        )
+        for label, from_dict, payload in cases:
+            with self.subTest(label=label, mutation="missing"):
+                with self.assertRaises(VALIDATION_ERRORS):
+                    from_dict(self._drop(payload, "schema_version"))
+            with self.subTest(label=label, mutation="wrong_int"):
+                with self.assertRaises(VALIDATION_ERRORS):
+                    from_dict(self._bump_version(payload))
+            with self.subTest(label=label, mutation="string_version"):
+                with self.assertRaises(VALIDATION_ERRORS):
+                    from_dict({**payload, "schema_version": "1"})
+
+    def test_exact_keys_extra_key_rejected(self):
+        cases = (
+            ("Player", Player.from_dict, self._player_payload()),
+            ("Seat", Seat.from_dict, self._seat_payload()),
+            ("BlindAnteConfig", BlindAnteConfig.from_dict, self._blinds_payload()),
+            ("Action", Action.from_dict, self._action_payload()),
+            ("TableMetadata", TableMetadata.from_dict, self._table_payload()),
+        )
+        for label, from_dict, payload in cases:
+            with self.subTest(label=label):
+                with self.assertRaises(VALIDATION_ERRORS):
+                    from_dict({**payload, "extra_unknown_key": 1})
+
+    def test_exact_keys_missing_required_key_rejected(self):
+        cases = (
+            ("Player", Player.from_dict, self._player_payload(), "name"),
+            ("Seat", Seat.from_dict, self._seat_payload(), "number"),
+            ("BlindAnteConfig", BlindAnteConfig.from_dict, self._blinds_payload(), "ante"),
+            ("Action", Action.from_dict, self._action_payload(), "provenance"),
+            ("TableMetadata", TableMetadata.from_dict, self._table_payload(), "blinds"),
+        )
+        for label, from_dict, payload, key in cases:
+            with self.subTest(label=label, key=key):
+                with self.assertRaises(VALIDATION_ERRORS):
+                    from_dict(self._drop(payload, key))
+
+    def test_action_actor_negatives(self):
+        for actor in ("", "   ", None):
+            with self.subTest(actor=actor):
+                with self.assertRaises(VALIDATION_ERRORS):
+                    Action(actor, Street.PREFLOP, ActionKind.FOLD, None, None, 0, "hh-0001")
+
+    def test_action_from_dict_unknown_enum_tokens_raise_value_error(self):
+        payload = self._action_payload()
+        for key, token in (
+            ("kind", "FOLDED"),
+            ("street", "FLOPPY"),
+            ("amount_semantics", "ADDED_TO"),
+        ):
+            with self.subTest(key=key, token=token):
+                # The exact contract: a ValueError (enum token converted by
+                # _enum_from_name), never an unconverted KeyError.
+                try:
+                    Action.from_dict({**payload, key: token})
+                except KeyError as exc:  # pragma: no cover - regression guard
+                    self.fail(f"unknown {key} token raised KeyError instead of ValueError: {exc!r}")
+                except ValueError:
+                    pass
+                else:  # pragma: no cover - regression guard
+                    self.fail(f"unknown {key} token was silently accepted")
+
+    def test_pot_rake_non_chips_rejected(self):
+        for rake in (5, 5.0, "5", None, True):
+            with self.subTest(rake=rake):
+                with self.assertRaises(VALIDATION_ERRORS):
+                    Pot({"p": Chips(10)}, rake=rake)
 
 
 if __name__ == "__main__":
