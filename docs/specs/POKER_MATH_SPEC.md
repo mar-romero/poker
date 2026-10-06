@@ -127,7 +127,44 @@ Rake is a versioned function of the completed pot/venue rules. Any threshold/EV 
 - Brier score and calibration curves for predicted action/fold probabilities
 - KL/Jensen-Shannon or other bounded distribution-distance diagnostics where useful
 - threshold/sensitivity analysis for range/fold/equity uncertainty
-- numerical tolerance policy for solver and simulation outputs
+- numerical tolerance policy for solver and simulation outputs (see "Precision and bb-denominated presentation" below; further solver/simulation tolerances extend this normative base)
 
 ## Test oracle policy
 Each formula must have: (1) hand-calculated fixtures, (2) algebraic identity tests, (3) invalid-domain tests, and where practical (4) independent-library/oracle cross-checks. Approximate numerical methods require explicit absolute/relative tolerances.
+
+## Precision and bb-denominated presentation
+This section is the normative precision contract for all authoritative monetary/chip calculations (`poker.math.precision`).
+
+### Units and arithmetic domains
+- Authoritative chip amounts are exact non-negative plain ints carried by `Chips`; binary floats never carry an authoritative amount and never enter pot/stack/EV arithmetic.
+- bb (big-blind) denominated values are `decimal.Decimal`; unit is big-blind chips unless stated otherwise; when a bb amount references a stake, the stake's `bb` value (chip units) is part of the contract.
+- Every Decimal computation runs inside a module-local decimal context with `PRECISION_CONTEXT_PREC = 50` significant digits and deliberately widened exponent bounds; the process-global decimal context is never mutated or relied upon. Raw `int / int` true division is forbidden in the precision layer because it silently yields a binary float; conversions divide `Decimal` values inside the module context.
+
+### bb conversion
+- `to_bb(chips, bb)`: exact ratio `Decimal(chips) / Decimal(bb)` in bb units; no rounding inside the conversion (non-terminating ratios carry full context precision). Inputs use strict chip validation (Chips or plain int only); `bb <= 0` and negative chips fail with a raised error.
+- `from_bb(amount_bb, bb)`: reconstructs integer chips only when `amount_bb * bb` is exactly an integral non-negative value; a lossy reconstruction must raise rather than silently round the authoritative chip amount. `amount_bb` is accepted only as a Decimal instance or a decimal string.
+- `format_bb(chips, bb, places=2)`: user-facing presentation only — `to_bb` then `round_bb` under the PRESENTATION policy, formatted as a fixed-places string. Presentation strings must never be parsed back for arithmetic; rebuild exact amounts with `from_bb`.
+
+### Rounding policies
+Rounding is always explicit and named; the implicit default `ROUND_HALF_EVEN` is never applied:
+- `PRESENTATION` (ROUND_HALF_UP): user-facing bb display; `.5` boundaries round away from zero.
+- `CONSERVATIVE_ALLOCATION` (ROUND_DOWN): allocation-faced display/quantization where no value may be over-credited by rounding.
+- `round_bb(value, places=2, policy=PRESENTATION)`: quantize to `places` fractional digits inside the module context (`prec=50` avoids `InvalidOperation` at extreme magnitudes).
+
+### Chip allocation (largest remainder)
+`allocate_exact(weights, total)` partitions `total` across weights so the returned parts sum EXACTLY to `total` (chip conservation identity):
+- `share_i = total * w_i / W` with `W = sum(weights)`, computed as an exact rational (Fraction or context-local Decimal).
+- Each share is floored to whole chips; the leftover `total - sum(floors)` is distributed one chip at a time to the shares with the largest fractional remainders, deterministically tie-broken by lowest index first.
+- Rounded parts are never re-summed and re-rounded. Validation: non-negative weights/total with strict chip typing; `total > 0` with all-zero weights is undefined and raises; `total == 0` yields all `Chips(0)`.
+
+### bb serialization (authority separation)
+`bb_to_dict` / `bb_from_dict` serialize a bb Decimal with exactly the keys `schema_version`, `value`, `unit`:
+- `value` is always the full-precision decimal string `str(Decimal)` (never a JSON number and never a float); `unit` is always `'bb'`; `schema_version` follows the domain's single version source.
+- `bb_from_dict` accepts only a decimal `str` for `value` and fails closed on missing/extra keys, a wrong unit, malformed or non-finite literals (`NaN`, `Infinity`, `-Infinity`) or a foreign schema version; `bb_to_dict` equally refuses to serialize a non-finite Decimal.
+- A bb dict is NOT parseable by `Chips.from_dict`; chip and bb payloads are separate authorities and must never flow through each other's parsers.
+
+### Tolerance policy for outbound float use
+- Exact-domain comparisons (int/int, Decimal/Decimal) are exact; tolerances never replace them.
+- `Tolerance(abs_tol, rel_tol)` bundles an explicit absolute and relative tolerance; both are mandatory non-negative finite Decimal instances (floats/ints/bools/strings rejected).
+- `decimal_to_float(value)` is the ONE documented one-way outbound conversion (`float(value)`), used only to leave the exact domain for genuinely float-domain boundaries. Rebuilding a Decimal (or Chips) from a float is forbidden.
+- `float_within(a, b, tol)` implements `|a - b| <= abs_tol + rel_tol * |b|` in the float domain only, with `b` as the reference/oracle side; authoritative calculations must not pass through it.
