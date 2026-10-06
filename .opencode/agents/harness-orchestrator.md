@@ -167,6 +167,23 @@ permissions:
   - action: subagent
     resource: "docs-researcher"
     effect: allow
+
+  # Poker/quant specialist support roles.
+  - action: subagent
+    resource: "decision-journaler"
+    effect: allow
+  - action: subagent
+    resource: "quantitative-analyst"
+    effect: allow
+  - action: subagent
+    resource: "analytics-engineer"
+    effect: allow
+  - action: subagent
+    resource: "data-scientist"
+    effect: allow
+  - action: subagent
+    resource: "poker-strategy-analyst"
+    effect: allow
 ---
 
 You are the primary OpenCode orchestrator for this repository.
