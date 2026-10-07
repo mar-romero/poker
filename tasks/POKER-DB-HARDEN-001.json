@@ -1,0 +1,59 @@
+{
+  "id": "POKER-DB-HARDEN-001",
+  "description": "Harden the POKER-DATA-SCHEMA-001 persistence candidate per independent review/audit findings: enforce action-to-seated-player provenance with a composite foreign key, close the UPDATE-path gap in card-disjointness triggers, declare the runtime/dependency contract in pyproject.toml, and add fail-to-pass negatives for the batch-lineage foreign keys.",
+  "acceptance_criteria": [
+    "An action can only attribute to a player actually seated at that (hand_id, seat_number): composite FK actions(hand_id, seat_number, player_id) -> hand_players(hand_id, seat_number, player_id) is enforced and a negative fail-to-pass test rejects a mismatched player.",
+    "Card-disjointness is enforced on both INSERT and UPDATE of hole_cards and board_cards, with negative fail-to-pass tests for the UPDATE path.",
+    "The runtime contract is declared in pyproject.toml (requires Python >= 3.12; pinned sqlalchemy 2.1.3 and alembic 1.20.0) consistent with ADR-0002, and a new ADR records the provenance and migration decisions.",
+    "Fail-to-pass negative tests exist for import_batches.raw_source_id and hands.import_batch_id foreign keys.",
+    "Deterministic schema recreation, alembic/create_all parity, and the full suite (prior 658 tests plus new tests) remain green."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": true,
+    "database_change": true,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": false,
+    "migration": true,
+    "persistence": true,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "src/poker/db/models.py",
+    "migrations/versions/a1c9f2b4e6d8_initial_schema.py",
+    "tests/db/test_schema.py",
+    "pyproject.toml",
+    "docs/decisions/adr-0004-poker-db-provenance-hardening.md",
+    "docs/decisions/README.md"
+  ],
+  "tags": [
+    "review-remediation",
+    "schema-hardening"
+  ],
+  "origin": {
+    "kind": "review_remediation",
+    "source_task_id": "POKER-DATA-SCHEMA-001",
+    "source_evidence": [
+      ".harness/runs/POKER-DATA-SCHEMA-001/handoffs/reviewer.json (medium findings: action player-to-seat pairing, UPDATE-path trigger gap, undeclared Python 3.12 floor, portable-SQL note)",
+      ".harness/runs/POKER-DATA-SCHEMA-001/handoffs/test-auditor.json (medium finding: import_batches.raw_source_id and hands.import_batch_id lack negative tests)"
+    ],
+    "published_commit": "164d62e4d810b3f15a84122d6f852608824c69b9",
+    "user_authorization": "Explicit user instruction in orchestrator session to proceed with the follow-up hardening work"
+  },
+  "planning": {
+    "title": "Harden DB schema provenance, UPDATE triggers, runtime contract, and FK negatives",
+    "size": "M",
+    "dependencies": [
+      "POKER-DATA-SCHEMA-001"
+    ],
+    "priority_score": 4.5,
+    "notes": "Initial migration may be edited in place because the project is pre-release and AC1 of POKER-DATA-SCHEMA-001 pins deterministic empty-database recreation; the decision must be journaled in ADR-0004. pyproject.toml is a declaration only: no build backend, no dependency installation, no packaging metadata beyond [project] name/version/requires-python/dependencies."
+  }
+}
