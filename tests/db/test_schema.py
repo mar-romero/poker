@@ -672,6 +672,24 @@ class TestForeignKeyProvenance(SchemaContractBase):
                 context="decision_points.action_id -> actions.id",
             )
 
+    def test_action_attributes_wrong_player_rejected(self):
+        # Provenance: an action at (hand_id, seat_number) must attribute to the
+        # player actually seated there (composite provenance FK, not just
+        # "seat exists" + "player exists").
+        with self.engine.connect() as conn:
+            seeded = self._seed_table(conn)  # seats 2 and 3
+            self._assert_integrity_error(
+                conn,
+                "INSERT INTO actions(hand_id, seat_number, player_id, sequence,"
+                " street, action_type, amount, semantics, post_type) VALUES"
+                " (:hand_id, 2, :player_id, 0, 0, 'CALL', 1,"
+                " 'total_commitment', NULL)",
+                {"hand_id": seeded["hand_id"], "player_id": seeded["player_ids"][1]},
+                message_contains="foreign key",
+                context="actions(hand_id, seat_number, player_id)"
+                " -> hand_players(hand_id, seat_number, player_id)",
+            )
+
     def test_full_hand_single_transaction_commits(self):
         with self.engine.connect() as conn:
             self._create_all(self.engine)
@@ -723,6 +741,36 @@ class TestForeignKeyProvenance(SchemaContractBase):
             )
             self.assertEqual(
                 self._scalar(conn, "SELECT COUNT(*) FROM board_cards WHERE hand_id = :h", {"h": hand_id}), 5
+            )
+
+
+class TestImportBatchLineageFks(SchemaContractBase):
+    """Fail-to-pass negatives for the batch-lineage foreign keys (audit finding)."""
+
+    def test_import_batches_raw_source_fk_negative(self):
+        with self.engine.connect() as conn:
+            self._assert_integrity_error(
+                conn,
+                "INSERT INTO import_batches(raw_source_id) VALUES (999999)",
+                message_contains="foreign key",
+                context="import_batches.raw_source_id -> raw_sources.id",
+            )
+
+    def test_hands_import_batch_fk_negative(self):
+        # hands.import_batch_id -> import_batches.id negative, checked via an
+        # UPDATE on a fully valid hand: an INSERT of an orphan hand is
+        # confounded by the deferred composite hands(id, button_seat) FK,
+        # which rejects ANY hand without seated hand_players at commit even
+        # when the batch-lineage FK is absent, so only this form has a
+        # mutually-exclusive mutation-check outcome.
+        with self.engine.connect() as conn:
+            seeded = self._seed_table(conn, hand_number="HH-BATCH-NEG")
+            self._assert_integrity_error(
+                conn,
+                "UPDATE hands SET import_batch_id = 999999 WHERE id = :hand_id",
+                {"hand_id": seeded["hand_id"]},
+                message_contains="foreign key",
+                context="hands.import_batch_id -> import_batches.id",
             )
 
 
@@ -1058,6 +1106,43 @@ class TestCardDomain(SchemaContractBase):
                 {"hand_id": hand_id},
                 message_contains="check",
                 context="board-then-hole same card in one hand (schema-level ledger)",
+            )
+
+    def test_hole_card_update_not_on_board_rejected(self):
+        # UPDATE-path closure: a hole card may not be edited to a card that is
+        # already on the board of the same hand (RAISE(ROLLBACK) fires at
+        # execute time).
+        with self.engine.connect() as conn:
+            seeded = self._seed_table(conn, hand_number="HH-UPD-H-1")
+            hand_id = seeded["hand_id"]
+            self._insert_hole_card(conn, hand_id, 2, "As")
+            self._insert_board_card(conn, hand_id, "Qd", street=1, position=1)
+            conn.commit()
+            self._assert_integrity_error(
+                conn,
+                "UPDATE hole_cards SET card = 'Qd'"
+                " WHERE hand_id = :hand_id AND seat_number = 2",
+                {"hand_id": hand_id},
+                message_contains="check failed",
+                context="hole card updated onto the board of the same hand",
+            )
+
+    def test_board_card_update_not_in_holes_rejected(self):
+        # UPDATE-path closure, symmetric direction: a board card may not be
+        # edited to a card already in the holes of the same hand.
+        with self.engine.connect() as conn:
+            seeded = self._seed_table(conn, hand_number="HH-UPD-B-1")
+            hand_id = seeded["hand_id"]
+            self._insert_hole_card(conn, hand_id, 2, "As")
+            self._insert_board_card(conn, hand_id, "Qd", street=1, position=1)
+            conn.commit()
+            self._assert_integrity_error(
+                conn,
+                "UPDATE board_cards SET card = 'As'"
+                " WHERE hand_id = :hand_id AND street = 1 AND position = 1",
+                {"hand_id": hand_id},
+                message_contains="check failed",
+                context="board card updated into the holes of the same hand",
             )
 
     def test_same_card_in_different_hands_allowed(self):

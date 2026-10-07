@@ -220,6 +220,12 @@ class HandPlayer(Base):
     __table_args__ = (
         UniqueConstraint("hand_id", "seat_number"),  # one row per seat per hand
         UniqueConstraint("hand_id", "player_id"),  # one row per player per hand
+        # DJ: ADR-0004 — parent target of the composite provenance foreign key
+        # actions(hand_id, seat_number, player_id) -> hand_players(...): SQLite
+        # requires a UNIQUE index on the parent columns (non-tightening, since
+        # the strict uniqueness is already guaranteed by the two 2-column
+        # uniques above).
+        UniqueConstraint("hand_id", "seat_number", "player_id"),  # PS-12
         CheckConstraint(_LEGAL_SEAT_SQL.replace("seat_number", "seat_number")),  # PS-10
         CheckConstraint("stack >= 0"),  # PS-5
     )
@@ -258,6 +264,14 @@ class Action(Base):
             ["hand_id", "seat_number"],
             ["hand_players.hand_id", "hand_players.seat_number"],
             # actions may only be attributed to seats of the SAME hand.
+        ),
+        # DJ: ADR-0004 — provenance: the action must attribute to the player
+        # actually seated at that (hand_id, seat_number). Immediate and NOT
+        # deferrable, matching the existing (hand_id, seat_number) FK
+        # semantics above; the player_id -> players.id identity FK is kept.
+        ForeignKeyConstraint(
+            ["hand_id", "seat_number", "player_id"],
+            ["hand_players.hand_id", "hand_players.seat_number", "hand_players.player_id"],
         ),
     )
 
@@ -355,9 +369,11 @@ class DecisionPoint(Base):
 
 # ------------------------------------------------------------------ triggers
 
-# PS-9 + DJ: ADR-0002 — schema-level per-hand card ledger: a card may not be
-# both a hole card and a board card within the same hand. Both directions are
-# enforced by triggers so raw SQL (not just the ORM) hits them. Triggers are
+# PS-9 + DJ: ADR-0002/ADR-0004 — schema-level per-hand card ledger: a card
+# may not be both a hole card and a board card within the same hand, on
+# INSERT (both directions) and, since ADR-0004, also on UPDATE of the card
+# column. Both directions are enforced by triggers so raw SQL (not just the
+# ORM) hits them. Triggers are
 # attached to the metadata itself so ANY ``Base.metadata.create_all`` —
 # including the test oracle, the schema-ensuring engine factory and the
 # initial Alembic revision — creates them. ``IF NOT EXISTS`` makes the block
@@ -372,6 +388,22 @@ _CARD_DISJOINT_TRIGGER_SQL = (
     " 'check failed: card is already on the board of this hand'); END",
     "CREATE TRIGGER IF NOT EXISTS trg_board_card_not_in_holes BEFORE INSERT ON"
     " board_cards FOR EACH ROW WHEN EXISTS ("
+    "  SELECT 1 FROM hole_cards h"
+    "  WHERE h.hand_id = NEW.hand_id AND h.card = NEW.card)"
+    " BEGIN SELECT RAISE(ROLLBACK,"
+    " 'check failed: card is already in the holes of this hand'); END",
+    # DJ: ADR-0004 — UPDATE-path closure: the INSERT triggers alone left an
+    # edit-in-place loophole; edits of hole/board cards to a card that already
+    # sits on the opposite side of the SAME hand are rejected at statement
+    # time (RAISE(ROLLBACK) fires at execute).
+    "CREATE TRIGGER IF NOT EXISTS trg_hole_card_update_not_on_board BEFORE"
+    " UPDATE OF card ON hole_cards FOR EACH ROW WHEN EXISTS ("
+    "  SELECT 1 FROM board_cards b"
+    "  WHERE b.hand_id = NEW.hand_id AND b.card = NEW.card)"
+    " BEGIN SELECT RAISE(ROLLBACK,"
+    " 'check failed: card is already on the board of this hand'); END",
+    "CREATE TRIGGER IF NOT EXISTS trg_board_card_update_not_in_holes BEFORE"
+    " UPDATE OF card ON board_cards FOR EACH ROW WHEN EXISTS ("
     "  SELECT 1 FROM hole_cards h"
     "  WHERE h.hand_id = NEW.hand_id AND h.card = NEW.card)"
     " BEGIN SELECT RAISE(ROLLBACK,"

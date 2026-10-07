@@ -7,9 +7,14 @@ Create Date: 2026-10-06
 The upgrade creates all 11 planned tables exactly as
 ``poker.db.models.Base.metadata`` defines them — INCLUDING the deferrable
 composite foreign key ``hands(id, button_seat) ->
-hand_players(hand_id, seat_number)`` and the per-hand card-disjointness
-triggers — by delegating to that same single authoritative metadata (DJ:
-ADR-0002 "alembic-vs-create_all parity oracle"; ADR-0003).
+hand_players(hand_id, seat_number)``, the provenance composite foreign key
+``actions(hand_id, seat_number, player_id) -> hand_players(hand_id,
+seat_number, player_id)`` (with the 3-column
+``UNIQUE(hand_id, seat_number, player_id)`` parent index it requires on
+``hand_players``, DJ: ADR-0004) and the per-hand card-disjointness triggers on
+both the INSERT and the UPDATE paths of ``hole_cards`` / ``board_cards`` —
+by delegating to that same single authoritative metadata (DJ:
+ADR-0002 "alembic-vs-create_all parity oracle"; ADR-0003; ADR-0004).
 
 Rationale: the TDD oracle compares PRAGMA table_info and
 PRAGMA foreign_key_list per table between an Alembic-upgraded database and a
@@ -36,8 +41,10 @@ depends_on = None
 def upgrade() -> None:
     from poker.db.models import Base
 
-    # Creates the 11 tables and the card-disjointness triggers (the triggers
-    # are attached to Base.metadata's after_create), PS-3/PS-9.
+    # Creates the 11 tables, the card-disjointness triggers on both the
+    # INSERT and UPDATE paths (the triggers are attached to Base.metadata's
+    # after_create), and the provenance composite FK + 3-column hand_players
+    # unique from the same metadata, PS-3/PS-9/PS-12 and DJ: ADR-0004.
     Base.metadata.create_all(op.get_bind())
 
 
