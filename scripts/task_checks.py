@@ -338,7 +338,7 @@ def _validate_planned_files(task: dict, execution_root: Path) -> list[dict]:
         results.append(
             {
                 "path": raw,
-                "exists": candidate.is_file(),
+                "exists": candidate.is_file() or candidate.is_dir(),
             }
         )
 
