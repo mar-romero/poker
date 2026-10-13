@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "mode": "pr",
+  "pr": {
+    "remote": "origin",
+    "base_branch": "main"
+  },
+  "_note": "mode 'pr' activates scripts/publish_pr.py blocking-PR publication (human merges on GitHub; finalize requires task commit to be an ancestor of origin/main). mode 'fast_forward' or absent file restores legacy scripts/worktree.py fast-forward flow. publish_pr refuses to run when mode != 'pr'. Direct invocation of worktree.publish is NOT intercepted by code; operators switch the invoked script when mode is 'pr'."
+}
