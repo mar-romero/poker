@@ -1,0 +1,49 @@
+{
+  "id": "POKER-PR-FLOW-001",
+  "description": "Add an opt-in blocking pull-request publication mode for task worktrees: when enabled by policy, publication pushes the task branch to origin, opens a GitHub PR against main via gh CLI, records PR metadata in the task run dir, and defers main advancement and worktree cleanup until the human-merged PR makes the task commit an ancestor of canonical HEAD; the existing fast-forward flow remains the default when the flag is off, and the finish gate requirement (commit integrated into canonical branch) is unchanged.",
+  "acceptance_criteria": [
+    "With the policy flag off, task publication behaves exactly as today (fast-forward integration + finish gate unchanged): regression test proves identical behavior on a fixture task.",
+    "With the policy flag on, publication pushes the task branch to origin, creates a PR against main using gh CLI with a rendered title/body carrying task provenance, records PR URL/number/branch in the task run dir, and does NOT fast-forward main, NOT remove the worktree and NOT release the writer lock at that point.",
+    "After the PR is merged and canonical HEAD advances (fetch/pull), an explicit finalize step completes cleanup (worktree removal + lock release) and publish_status then reports published=true for the integrated commit; the finish gate passes unchanged.",
+    "Behavioral tests cover the three states (pre-merge, merged-withOUT finalize, merged-with finalize) via fixture fakes for git/gh invocations, without network access."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": false
+  },
+  "files": [
+    "scripts/publish_pr.py",
+    "harness/publish-policy.json",
+    "tests/test_publish_pr.py"
+  ],
+  "tags": [
+    "process-change",
+    "publication-flow"
+  ],
+  "origin": {
+    "kind": "human_decision",
+    "decision": "Repository owner selected, in orchestrator session chat, the blocking-PR publication mode (PR blocks task closure; human performs the merge) for future tasks, answering the orchestrator's flow-design question",
+    "date": "2026-10-10",
+    "source_task_context": "POKER-HAND-EVAL-001 closure discussion (canonical flow integrates directly to main; owner requested PR-based delivery 'lo del PR que es lo mejor')"
+  },
+  "planning": {
+    "title": "Opt-in blocking PR publication mode for task worktrees",
+    "size": "M",
+    "dependencies": [],
+    "priority_score": 4.0,
+    "notes": "Additive design required: do not modify scripts/worktree.py core publish semantics in this task; reuse its typed primitives by import and implement the PR flow as a new module plus a new policy file with the flag defaulting to off. gh CLI availability is an external runtime contract; tests must fake the gh invocation."
+  }
+}
