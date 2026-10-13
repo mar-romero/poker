@@ -1,0 +1,49 @@
+{
+  "id": "POKER-CI-FIX-001",
+  "description": "Fix the Harness GitHub Actions CI job so unittest discovery finds the src layout and runtime dependencies: scripts/check-harness.sh must export PYTHONPATH=src for the unittest discover invocation, and the workflow must install the pinned runtime dependencies (sqlalchemy==2.1.3, alembic==1.20.0 recorded in ADR-0002 and pyproject.toml) before running the harness check; currently CI fails with ModuleNotFoundError 'poker' and 'sqlalchemy' while the same command passes locally only because the local check runner sets a private environment.",
+  "acceptance_criteria": [
+    "scripts/check-harness.sh invokes unittest discovery with PYTHONPATH=src (exported for all three script steps or at minimum for the unit-test step), without weakening any of its existing fail-closed steps.",
+    "The GitHub workflow installs the pinned runtime dependencies before running harness checks (no floating versions; pins match pyproject.toml and ADR-0002).",
+    "A regression test (or equivalent deterministic check) asserts the workflow/check script contract: PYTHONPATH=src present in the unittest invocation, dependency install step present and pinned, so a future regression to discovery-path or missing-deps fails the test first.",
+    "The repo local deterministic suite is unchanged or green (715 tests), and the CI contract test introduced is included."
+  ],
+  "risk_factors": {
+    "touches_auth": false,
+    "touches_production": false,
+    "uses_secrets": false,
+    "destructive_operation": false,
+    "irreversible_change": false,
+    "security_boundary": false,
+    "schema_change": false,
+    "database_change": false,
+    "concurrency": false,
+    "financial": false,
+    "external_contract": true,
+    "migration": false,
+    "persistence": false,
+    "important_calculation": false,
+    "bug_fix": true
+  },
+  "files": [
+    ".github/workflows/harness.yml",
+    "scripts/check-harness.sh",
+    "tests/test_ci_contract.py"
+  ],
+  "tags": [
+    "ci-reliability",
+    "process-fix"
+  ],
+  "origin": {
+    "kind": "defect_remediation",
+    "source": "GitHub Actions run on main after POKER-PR-FLOW-001 record push: job failed with ModuleNotFoundError 'poker' (cards/db/domain test modules) and 'sqlalchemy' (db tests) because scripts/check-harness.sh runs unittest discovery without PYTHONPATH=src and the workflow installs no dependencies; 454 tests discovered, 5 module-import errors, exit 1",
+    "user_authorization": "Repository owner reported the failing CI run in orchestrator session and requested the fix; this task also serves as the first end-to-end exercise of the blocking-PR publication flow (publish_pr.py)",
+    "date": "2026-10-13"
+  },
+  "planning": {
+    "title": "Fix CI: PYTHONPATH for src layout + pinned dependency install",
+    "size": "S",
+    "dependencies": [],
+    "priority_score": 4.5,
+    "notes": "Publication of this task exercises the new mode 'pr' blocking-PR flow end to end: publication pushes agent branch and opens a PR against main; the human merges (merge-commit or rebase, never squash); publish_pr finalize completes closure. gh CLI availability must be verified during EXPLORE before any PR-mode publication is planned."
+  }
+}
