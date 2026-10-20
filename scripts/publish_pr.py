@@ -12,12 +12,24 @@ flag is on, publication of a task worktree:
    worktree or release the writer lock.
 
 After a human merges the PR on GitHub, an explicit ``finalize`` step verifies
-that the task commit became an ancestor of ``origin/<base_branch>`` (it must be
-a merge or rebase merge, never a squash), fast-forwards the canonical branch,
-releases the worktree/writer lock and rewrites ``publish.json`` with status
-PASS.  The finish gate contract (``gate.finish_decision`` publication
-requirement) stays unchanged because it only ever looks at ``publish.json``
-through ``worktree.publish_status``.
+that the task commit became an ancestor of ``origin/<base_branch>`` (it must
+be a merge commit: squash and rebase merges rewrite or remove the task commit
+and break the ancestry requirement of the finish gate), fast-forwards the
+canonical branch, releases the worktree/writer lock and rewrites
+``publish.json`` with status PASS.  The finish gate contract
+(``gate.finish_decision`` publication requirement) stays unchanged because it
+only ever looks at ``publish.json`` through ``worktree.publish_status``.
+
+When no operator body file is supplied to ``publish --body``, a structured
+markdown body is rendered from the durable task artifacts (task definition
+under ``tasks/<task_id>.json`` and run artifacts under
+``.harness/runs/<task_id>/``): ``## Task`` (planning title, first sentence of
+the description, risk level), ``## Acceptance criteria`` (verbatim, numbered),
+``## Changes`` (bullet list), ``## Evidence`` (checks report summary,
+scope-expansion note, TDD phase evidence), ``## Merge instructions`` (never
+squash) and a ``## Provenance`` footer.  Every optional
+source is read fail-soft: a missing or unparseable artifact renders
+``(not available)`` instead of failing the publication.
 
 ``mode: fast_forward`` or an absent policy file restores the legacy
 ``scripts/worktree.py`` fast-forward flow, which this module refuses to bypass.
@@ -251,16 +263,182 @@ def _refuse_if_already_published(task):
             )
 
 
+_BODY_UNAVAILABLE = '(not available)'
+
+
+def _soft_json(path):
+    """Fail-soft JSON read: returns None on any missing/unparseable input."""
+    try:
+        return json.loads(Path(path).read_text(encoding='utf-8'))
+    except Exception:
+        return None
+
+
+def _soft_text(path):
+    """Fail-soft text read: returns None on any missing/unreadable input."""
+    try:
+        return Path(path).read_text(encoding='utf-8')
+    except Exception:
+        return None
+
+
+def _run_artifact(task, name):
+    """Fail-soft resolved path to a task run artifact (or None)."""
+    try:
+        return run_dir(task) / name
+    except Exception:
+        return None
+
+
+def _task_definition(task):
+    """Fail-soft durable task definition from tasks/<task_id>.json."""
+    try:
+        data = load_json(f'tasks/{task}.json')
+    except Exception:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _first_sentence(text):
+    if not isinstance(text, str) or not text.strip():
+        return None
+    stripped = text.strip()
+    match = re.match(r'^(.*?[.!?])(?:\s|$)', stripped, re.DOTALL)
+    return match.group(1) if match else stripped
+
+
+def _risk_level(task):
+    """Risk from the run-dir task.json, falling back to route.json."""
+    for name in ('task.json', 'route.json'):
+        artifact = _run_artifact(task, name)
+        if artifact is None:
+            continue
+        data = _soft_json(artifact)
+        if isinstance(data, dict) and isinstance(data.get('risk'), str) and data['risk']:
+            return data['risk']
+    return None
+
+
+def _checks_summary(task):
+    """(status, test count) from checks-report.json; test count comes from the
+    'Ran N tests' line of a captured command stream when present."""
+    artifact = _run_artifact(task, 'checks-report.json')
+    if artifact is None:
+        return None
+    data = _soft_json(artifact)
+    if not isinstance(data, dict):
+        return None
+    status = data.get('status') if isinstance(data.get('status'), str) else None
+    test_count = None
+    for command in data.get('commands') or []:
+        if not isinstance(command, dict):
+            continue
+        blob = f'{command.get("stdout", "")}\n{command.get("stderr", "")}'
+        match = re.search(r'Ran (\d+) tests?', blob)
+        if match:
+            test_count = int(match.group(1))
+            break
+    return status, test_count
+
+
+def _scope_expansion_summary(task):
+    """APPROVED state + expanded files from scope-expansion.json, or None."""
+    artifact = _run_artifact(task, 'scope-expansion.json')
+    if artifact is None:
+        return None
+    data = _soft_json(artifact)
+    if not isinstance(data, dict):
+        return None
+    files = data.get('expanded_files')
+    if isinstance(files, list) and files:
+        expanded = ', '.join(str(item) for item in files)
+    else:
+        expanded = 'none recorded'
+    status = data.get('status') if isinstance(data.get('status'), str) else 'UNKNOWN'
+    return f'{status} (expanded files: {expanded})'
+
+
+def _tdd_summary(task):
+    """Phases recorded in tdd-evidence.jsonl with their exit codes, or None."""
+    artifact = _run_artifact(task, 'tdd-evidence.jsonl')
+    if artifact is None:
+        return None
+    text = _soft_text(artifact)
+    if text is None:
+        return None
+    phases = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(record, dict) and isinstance(record.get('phase'), str):
+            phases.append(f'{record["phase"]} (exit {record.get("exit_code")})')
+    return phases or None
+
+
 def _render_body(task, meta, candidate, committed):
-    return (
-        'Task publication provenance\n'
-        f'task_id: {task}\n'
-        f'branch: {meta["branch"]}\n'
-        f'base_commit: {meta["base_commit"]}\n'
-        f'task_commit: {candidate}\n'
-        f'integration_branch: {meta["integration_branch"]}\n'
-        f'changed_files: {", ".join(committed)}\n'
+    definition = _task_definition(task)
+    planning = definition.get('planning') if isinstance(definition, dict) else None
+    planning_title = planning.get('title') if isinstance(planning, dict) else None
+    description = _first_sentence(definition.get('description')) if definition else None
+    risk = _risk_level(task)
+    criteria = definition.get('acceptance_criteria') if isinstance(definition, dict) else None
+
+    lines = ['## Task', '']
+    lines.append(f'task_id: {task}')
+    lines.append(f'title: {planning_title or _BODY_UNAVAILABLE}')
+    lines.append(f'description: {description or _BODY_UNAVAILABLE}')
+    lines.append(f'risk: {risk or _BODY_UNAVAILABLE}')
+    lines.append('')
+    lines.append('## Acceptance criteria')
+    lines.append('')
+    if isinstance(criteria, list) and criteria:
+        for index, item in enumerate(criteria, 1):
+            lines.append(f'{index}. {item}')
+    else:
+        lines.append(_BODY_UNAVAILABLE)
+    lines.append('')
+    lines.append('## Changes')
+    lines.append('')
+    lines.extend(f'- {name}' for name in committed)
+    lines.append('')
+    lines.append('## Evidence')
+    lines.append('')
+    checks = _checks_summary(task)
+    if checks is None:
+        lines.append(f'checks: {_BODY_UNAVAILABLE}')
+    else:
+        status, test_count = checks
+        suffix = f' ({test_count} tests)' if test_count else ''
+        lines.append(f'checks: {status or "UNKNOWN"}{suffix}')
+    expansion = _scope_expansion_summary(task)
+    lines.append(f'scope expansion: {expansion or _BODY_UNAVAILABLE}')
+    phases = _tdd_summary(task)
+    if phases:
+        lines.append(f'tdd phases: {", ".join(phases)}')
+    else:
+        lines.append(f'tdd phases: {_BODY_UNAVAILABLE}')
+    lines.append('')
+    lines.append('## Merge instructions')
+    lines.append('')
+    lines.append(
+        'Merge with a merge commit or rebase. NEVER squash: the finish gate '
+        'requires the task commit to remain an ancestor of main.'
     )
+    lines.append('')
+    lines.append('## Provenance')
+    lines.append('')
+    lines.append(f'task_id: {task}')
+    lines.append(f'branch: {meta["branch"]}')
+    lines.append(f'base_commit: {meta["base_commit"]}')
+    lines.append(f'task_commit: {candidate}')
+    lines.append(f'integration_branch: {meta["integration_branch"]}')
+    lines.append(f'changed_files: {", ".join(committed)}')
+    return '\n'.join(lines) + '\n'
 
 
 def _publish(task, execute, title, body):
@@ -483,8 +661,10 @@ def finalize(task, execute=False):
     if ancestor.returncode != 0:
         raise ValueError(
             f'task commit is not an ancestor of origin/{base} (squash merge); '
-            'merge the PR with a merge commit or rebase merge, or re-run '
-            'publication in fast_forward mode via scripts/worktree.py publish'
+            'merge the PR with a merge commit (never squash or rebase: both '
+            'rewrite/remove the task commit ancestry required by the finish '
+            'gate), or re-run publication in fast_forward mode via '
+            'scripts/worktree.py publish'
         )
 
     branch = git('branch', '--show-current', cwd=root).stdout.strip()
@@ -555,7 +735,12 @@ def main():
     p.add_argument('task')
     p.add_argument('--execute', action='store_true')
     p.add_argument('--title', help='pull request title override')
-    p.add_argument('--body', help='path to an operator-authored body file (passed to gh via --body-file)')
+    p.add_argument(
+        '--body',
+        help='path to an operator-authored body file (passed to gh via '
+             '--body-file); when omitted, a structured markdown body is '
+             'rendered from the task definition and run artifacts',
+    )
 
     p = sub.add_parser('status')
     p.add_argument('task')

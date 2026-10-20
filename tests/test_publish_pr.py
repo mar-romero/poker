@@ -448,23 +448,108 @@ class PublishPrFlowTests(unittest.TestCase):
         )
         fake, publish_git, worktree_git, out = self._publish_success(body=str(body_path))
         create_args = fake.pr_create_args()
+        # Operator-supplied body bypasses rendering: exact --body-file argv shape.
         self.assertIn('--body-file', create_args)
+        self.assertNotIn('--body', create_args)
         self.assertEqual(create_args[create_args.index('--body-file') + 1], str(body_path))
         body = fake.pr_create_body()
         self.assertIn(self.task, body)
         self.assertIn(self.branch, body)
         self.assertIn(self.base_commit, body)
 
-    def test_b04b_publish_renders_default_provenance_body(self):
+    def test_b04b_publish_renders_enriched_default_body(self):
+        path = self._fixture_task()
+        # Optional renderer inputs. scope-expansion.json is deliberately absent
+        # (its presence would change the publication gates) so the '(not
+        # available)' fail-soft fallback is pinned here.
+        (self.repo / 'tasks').mkdir(exist_ok=True)
+        planning_title = 'Fixture planning title for TASKT-001'
+        acceptance = [
+            'First acceptance criterion is met.',
+            'Second acceptance criterion is met.',
+            'Third acceptance criterion is met.',
+            'Fourth acceptance criterion is met.',
+        ]
+        (self.repo / 'tasks' / f'{self.task}.json').write_text(json.dumps({
+            'id': self.task,
+            'description': 'Renders an enriched PR body. Extra context is ignored.',
+            'acceptance_criteria': acceptance,
+            'planning': {'title': planning_title},
+        }), encoding='utf-8')
+        rd = harnesslib.run_dir(self.task)
+        (rd / 'checks-report.json').write_text(json.dumps({
+            'schema_version': 1,
+            'task_id': self.task,
+            'status': 'PASS',
+            'commands': [{
+                'argv': ['python', '-m', 'unittest'],
+                'exit_code': 0,
+                'stdout': 'Ran 123 tests in 1.234s\n\nOK',
+                'stderr': '',
+            }],
+        }), encoding='utf-8')
+        (rd / 'tdd-evidence.jsonl').write_text(
+            '{"phase": "red", "exit_code": 1, "status": "PASS"}\n'
+            '{"phase": "green", "exit_code": 0, "status": "PASS"}\n',
+            encoding='utf-8',
+        )
         fake, publish_git, worktree_git, out = self._publish_success()
         create_args = fake.pr_create_args()
         self.assertIn('--body', create_args)
         body = fake.pr_create_body()
+        # ## Task: task_id, planning title, first sentence, risk level.
+        self.assertIn('## Task', body)
         self.assertIn(self.task, body)
+        self.assertIn(planning_title, body)
+        self.assertIn('Renders an enriched PR body.', body)
+        self.assertIn('risk: R1', body)
+        # ## Acceptance criteria: numbered, verbatim from the task definition.
+        self.assertIn('## Acceptance criteria', body)
+        for index, criterion in enumerate(acceptance, 1):
+            self.assertIn(f'{index}. {criterion}', body)
+        # ## Changes: bullet list of changed files.
+        self.assertIn('## Changes', body)
+        self.assertIn('- src/app.py', body)
+        # ## Evidence: checks status + test count, scope-expansion fallback,
+        # tdd phases with exit codes.
+        self.assertIn('## Evidence', body)
+        self.assertIn('checks: PASS (123 tests)', body)
+        self.assertIn('scope expansion: (not available)', body)
+        self.assertIn('tdd phases: red (exit 1), green (exit 0)', body)
+        # ## Merge instructions + provenance footer.
+        self.assertIn('## Merge instructions', body)
+        self.assertIn('NEVER squash', body)
+        self.assertIn('## Provenance', body)
         self.assertIn(self.branch, body)
         self.assertIn(self.base_commit, body)
         self.assertIn(out['task_commit'], body)
-        self.assertIn('src/app.py', body)
+
+    def test_b04c_default_body_rendering_survives_all_artifacts_absent(self):
+        # Bare fixture: no tasks/<id>.json, no checks-report.json, no
+        # scope-expansion.json, no tdd-evidence.jsonl. Rendering must not
+        # crash and must still produce merge instructions + provenance.
+        body = publish_pr._render_body(
+            'TASKBARE-001',
+            {
+                'branch': 'agent/TASKBARE-001',
+                'base_commit': 'a' * 40,
+                'integration_branch': 'main',
+            },
+            'b' * 40,
+            ['src/bare.py'],
+        )
+        self.assertIn('## Task', body)
+        self.assertIn('## Acceptance criteria', body)
+        self.assertIn('## Changes', body)
+        self.assertIn('## Evidence', body)
+        self.assertIn('## Merge instructions', body)
+        self.assertIn('NEVER squash', body)
+        self.assertIn('## Provenance', body)
+        self.assertIn('agent/TASKBARE-001', body)
+        self.assertIn('a' * 40, body)
+        self.assertIn('b' * 40, body)
+        self.assertIn('- src/bare.py', body)
+        self.assertIn('(not available)', body)
 
     # -- B05: status read-only ------------------------------------------------
 
