@@ -90,11 +90,16 @@ permissions:
     resource: "python scripts/worktree.py publish *"
     effect: allow
   - action: shell
+    resource: "python scripts/publish_pr.py"
+    effect: allow    
+
+  - action: shell
     resource: "python scripts/task_checks.py run *"
     effect: allow
   - action: shell
     resource: "python scripts/check_harness.py*"
     effect: allow
+    
   - action: shell
     resource: "python scripts/run_evals.py*"
     effect: allow
