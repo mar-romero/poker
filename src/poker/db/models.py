@@ -9,7 +9,11 @@ Authoritative metadata for BOTH schema paths:
 
 Design rules (verified by ``tests/db/test_schema.py``):
 
-- PS-3: exactly 11 planned tables (no extras, no fewer).
+- PS-3: exactly 11 planned raw tables plus the two derived feature tables
+  (``feature_decisions``, ``feature_opportunities``) added by
+  POKER-DATA-FEATURES-001 — a deliberate documented extension of PS-3
+  (mirrored in ``tests/db/test_schema.py::EXPECTED_TABLES``); the raw
+  normalized surface itself stays 11 tables.
 - PS-4: every chip/amount column is INTEGER storage; never REAL/FLOAT/DOUBLE.
 - PS-13: timestamps are TEXT ISO-8601 UTC with database-level ``DEFAULT``
   expressions so raw-SQL writers work without ORM hooks; portable types only
@@ -365,6 +369,87 @@ class DecisionPoint(Base):
     # PS-14: identity-only — no extra columns are allowed; the TDD oracle
     # whitelists PRAGMA table_info to {id, hand_id, action_id, created_at}.
     __table_args__ = ()
+
+
+class FeatureDecision(Base):
+    """Derived per-decision feature row (versioned, recomputable).
+
+    Deliberate derived-features extension of PS-3 (POKER-DATA-FEATURES-001,
+    planner step 1 pin): rows are DERIVED from the raw normalized tables by
+    ``poker.features.materialize`` and never written by the ingest path.
+    ``action_id`` is the acting voluntary action the decision precedes; the
+    snapshot correspondence is pinned in the materializer (snapshot provenance
+    prefix ends at ``action_index == j - 1``). ``effective_stack_milli_bb`` is
+    INTEGER permille-of-big-blind (PS-4 forbids chip floats; the brief's
+    ``effective_stack_bb`` float unit was deliberately rejected).
+    """
+
+    __tablename__ = "feature_decisions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    hand_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("hands.id"), nullable=False  # PS-12 lineage
+    )
+    action_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("actions.id"), nullable=False  # AC1 link-back
+    )
+    feature_version: Mapped[str] = mapped_column(Text, nullable=False)
+    seat_number: Mapped[int] = mapped_column(Integer, nullable=False)  # PS-10
+    position: Mapped[str] = mapped_column(Text, nullable=False)
+    initiative: Mapped[int] = mapped_column(Integer, nullable=False)
+    pot_type: Mapped[str] = mapped_column(Text, nullable=False)
+    effective_stack_milli_bb: Mapped[int] = mapped_column(Integer, nullable=False)
+    facing_action: Mapped[str] = mapped_column(Text, nullable=False)
+    sizing_bucket: Mapped[str] = mapped_column(Text, nullable=False)
+    # PS-13: database-level UTC ISO-8601 timestamp so raw-SQL writers work.
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=_UTC_NOW_SQL
+    )
+
+    __table_args__ = (
+        CheckConstraint(_LEGAL_SEAT_SQL),  # PS-10 (canonical Seat 2..10)
+        CheckConstraint("initiative IN (0, 1)"),
+        CheckConstraint("effective_stack_milli_bb >= 0"),  # PS-5
+        UniqueConstraint("hand_id", "action_id", "feature_version"),
+    )
+
+
+class FeatureOpportunity(Base):
+    """Derived pre-action decision-point snapshot row (versioned).
+
+    Deliberate derived-features extension of PS-3 (POKER-DATA-FEATURES-001):
+    one row per ``(hand_id, street, seat_number, feature_version)`` pre-action
+    snapshot with an actor to act (engine U1). ``action_id`` is the last
+    applied action BEFORE the decision point and is NULL only for the hand's
+    very first decision; there is deliberately NO FK to decision_points
+    (identity-only link-back via the actions FK chain, planner step 2).
+    ``legal_actions`` is the deterministic sorted comma-joined ActionKind
+    names derived from ``StateEngine.replay`` snapshots (sanctioned authority).
+    """
+
+    __tablename__ = "feature_opportunities"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    hand_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("hands.id"), nullable=False  # PS-12 lineage
+    )
+    action_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("actions.id"), nullable=True  # nullable pre-action
+    )
+    feature_version: Mapped[str] = mapped_column(Text, nullable=False)
+    street: Mapped[int] = mapped_column(Integer, nullable=False)  # PS-11
+    seat_number: Mapped[int] = mapped_column(Integer, nullable=False)  # PS-10
+    legal_actions: Mapped[str] = mapped_column(Text, nullable=False)
+    board_descriptor: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=_UTC_NOW_SQL
+    )
+
+    __table_args__ = (
+        CheckConstraint(_LEGAL_STREET_SQL),  # PS-11
+        CheckConstraint(_LEGAL_SEAT_SQL),  # PS-10
+        UniqueConstraint("hand_id", "street", "seat_number", "feature_version"),
+    )
 
 
 # ------------------------------------------------------------------ triggers

@@ -21,9 +21,12 @@ Public API contract exercised here (the Phase-B implementation must provide):
 
 Schema contract enforced by these tests (raw SQL, ORM-independent):
 
-- 11 planned tables: raw_sources, import_batches, players, player_aliases,
-  hands, hand_players, actions, board_cards, hole_cards, uncalled_returns,
-  decision_points.
+- 13 planned tables (deliberate derived-features extension of PS-3, task
+  POKER-DATA-FEATURES-001): the 11 raw normalized tables (raw_sources,
+  import_batches, players, player_aliases, hands, hand_players, actions,
+  board_cards, hole_cards, uncalled_returns, decision_points) PLUS the
+  versioned derived tables feature_decisions and feature_opportunities
+  maintained by poker.features.materialize (never by the ingest path).
 - Chip amounts are INTEGER storage (never REAL/FLOAT/DOUBLE) and non-negative.
 - hands: UNIQUE(raw_source_id, table_name, hand_number, parser_version),
   UNIQUE(content_sha256, parser_version), content_sha256/parser_version NOT
@@ -76,6 +79,11 @@ RING_BOARD_CARDS = ALL_CARDS[18:23]  # flop 3 + turn 1 + river 1 = 5
 
 FULL_RING_SEATS = tuple(range(2, 11))  # seats 2..10 inclusive = 9 legal seats
 
+# Deliberate derived-features extension of PS-3 (task POKER-DATA-FEATURES-001,
+# planner step 12): feature_decisions and feature_opportunities are versioned
+# DERIVED tables owned by poker.features.materialize; the raw normalized
+# surface itself remains the 11 tables above. This widening is documented, not
+# silent — see the module docstring and src/poker/db/models.py.
 EXPECTED_TABLES = frozenset(
     {
         "raw_sources",
@@ -89,6 +97,8 @@ EXPECTED_TABLES = frozenset(
         "hole_cards",
         "uncalled_returns",
         "decision_points",
+        "feature_decisions",
+        "feature_opportunities",
     }
 )
 
@@ -507,6 +517,17 @@ class TestSchemaRecreation(SchemaContractBase):
                     fks_a,
                     fks_b,
                     "PRAGMA foreign_key_list mismatch for %s" % table,
+                )
+                # POKER-DATA-FEATURES-001: extend the parity oracle with the
+                # UNIQUE/CHECK constraint index lists so the two new derived
+                # tables (and every existing table) cannot drift between the
+                # create_all path and the alembic path.
+                idx_a = self._pragma_rows(conn_a, "PRAGMA index_list(%s)" % table)
+                idx_b = self._pragma_rows(conn_b, "PRAGMA index_list(%s)" % table)
+                self.assertEqual(
+                    idx_a,
+                    idx_b,
+                    "PRAGMA index_list mismatch for %s" % table,
                 )
 
 
