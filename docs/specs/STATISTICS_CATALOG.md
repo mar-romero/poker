@@ -29,6 +29,79 @@ Player/hero position; opponent position; heads-up/multiway; players dealt/player
 - shove/open-jam and response by effective stack
 - raise size distributions and position-conditioned sizing
 
+### Implemented preflop catalog (task POKER-STATS-PREFLOP-001; additive)
+
+Implemented in `src/poker/stats/catalog/preflop.py`, evaluated purely over
+`StateEngine.replay` artifacts (two-replay composition with the frozen
+`poker.stats.evaluate_hand`; no IO, deterministic). The 17 new definitions
+live under the independent constant `PREFLOP_DEFINITIONS_VERSION = '1.0.0'`
+(parallel to — never merged with — the frozen six-definition registry in
+`poker.stats.definitions`, `DEFINITIONS_VERSION = '1.0.0'`; the pinned six
+are reused by identity, not re-declared). Combined registry: 23 preflop stat
+ids in fixed order.
+
+Implemented stat IDs (opportunity predicate → success):
+
+- `vpip`: actor's FIRST non-excluded preflop decision → CALL or RAISE (a BB
+  check is never a success; re-opened second decisions are never
+  opportunities).
+- `pfr`: same opportunity → RAISE. PIN: limp-then-raise is NOT a PFR success
+  (the raise occurs at a re-opened decision, excluded by the gate).
+- `rfi`, `open_limp`: unopened (rc == 0, cc == 0) → RAISE / CALL.
+- `sb_complete`: unopened, position SB → CALL (intentionally also matches
+  `open_limp` at the same decision point — one decision point may carry
+  matches for several stats).
+- `over_limp`, `iso_raise`: limped (rc == 0, cc >= 1) → CALL / RAISE.
+- `fold_to_iso`, `call_to_iso`: rc == 1, cc >= 1 → FOLD / CALL;
+  `opener_position` = iso-raiser (last preflop raiser).
+- `cold_call`: rc == 1, cc == 0 → CALL; `opener_position` = lone opener.
+- `four_bet`: rc == 2 (regardless of cc) → RAISE.
+- `five_bet`, `fold_to_four_bet`, `call_to_four_bet`: rc == 3 → RAISE /
+  FOLD / CALL; `opener_position` = last preflop raiser (the 4-bettor).
+- `squeeze`: rc == 1, cc >= 1 → RAISE.
+- `fold_to_squeeze`, `call_to_squeeze`: rc == 2, cc >= 1 → FOLD / CALL;
+  `opener_position` = squizzer (last preflop raiser).
+
+Every result is exposed as a frozen `StatRate` with `successes`,
+`opportunities`, `raw_rate` (None on zero opportunities — never shown as
+0.0) and `definition_version`. Every definition is machine-readable via
+`preflop_definitions_to_dict()` (`predicate_spec` / `success_spec` /
+`dimensions` / `exclusions`) under a CLOSED predicate vocabulary.
+
+Documented pinned divergences (tracker-convention, recorded not silent):
+
+- `fold_to_three_bet` keeps its FROZEN semantics from
+  `poker.stats.definitions`: a FOLD facing a LONE open (rc == 1, cc == 0);
+  re-opened decisions (rc >= 2) match nothing there.
+- `pfr` first-decision pin (above): limp-then-raise is never a PFR success.
+- POSITIONS is the lossy analytics vocabulary of
+  `poker.features.schema.build_positions`: interior seats beyond UTG/CO
+  collapse UTG+1..HJ into `MP`; no IP/OOP dimension is derived.
+- FACING_ACTIONS `facing-4bet+` is an AGGREGATION LABEL only: the predicate
+  vocabulary keys on exact same-street raise counts, so a fold facing a
+  5-bet (rc == 4) matches no response statistic.
+- Composite steal (CO/BTN/SB attempt) is the AGGREGATION of the single
+  pinned `steal` definition over its `position` dimension — not a separate
+  code path.
+
+DEFERRED (explicitly out of scope for this task, with rationale):
+
+- All-in/open-jam measures and effective-stack-conditioned responses: the
+  D3 exclusion rule keeps facing-all-in decisions as generic opportunities,
+  but no all-in-aware predicates (jam/shove-over/facing-shove-by-stack) are
+  defined yet; adding them requires a new definition version.
+- Raise-size distributions and quantiles: sizing is out of the frequency
+  evaluator's scope (see "Sizing distributions"); needs raw pot-before
+  conventions and bucket governance.
+- IP/OOP dimension: POSITIONS deliberately carries no in-position flag;
+  would require a definition-version bump and a new dimension.
+- Posterior/Bayes estimates and credible intervals: display layer over
+  aggregated counts (see "Sample and uncertainty display"), not a
+  per-hand evaluation concern.
+- DSL aggregation: generated-stat composition (e.g. "BB fold vs BTN open,
+  80-120bb") is downstream of these definitions and belongs to the DSL
+  task.
+
 ## Flop base measures
 - c-bet, c-bet IP/OOP, in SRP/3BP/4BP and multiway
 - c-bet by sizing (<=25%, 25-40%, 40-60%, 60-90%, pot, overbet; retain raw size)
