@@ -8,6 +8,50 @@ and requires evidence before closure.
 The repository is run from its clone. It is not currently packaged as an
 installable CLI and does not provide a supported `harnes init` command.
 
+## The poker project
+
+The application built with this harness is a poker hand-analysis project
+(`src/poker/`, Python 3.12+): normalized hand-history ingestion, a trustworthy
+domain and math core, weighted ranges and exact river equity, and a versioned
+feature store on a normalized SQLite schema.
+
+### Module architecture
+
+- `src/poker/domain/` — core card model and rules (canonical types, pot,
+  side-pot, rake and effective-stack accounting).
+- `src/poker/math/` — combinatorics, numeric precision, chip/stack arithmetic.
+- `src/poker/engine/` — `StateEngine` hand replay.
+- `src/poker/cards/` — hand evaluator and board texture.
+- `src/poker/ingest/` — normalized hand-history adapter contract.
+- `src/poker/db/` — normalized SQLite schema, Alembic migrations and the
+  feature store.
+- `src/poker/range/` — weighted range model, notation, board texture, combo
+  classes and blockers.
+- `src/poker/equity/` — exact river equity enumeration.
+- `src/poker/features/` — versioned feature computation on top of the store.
+
+### Data model
+
+Data lives in a normalized SQLite database with 13 tables, managed by Alembic
+(migrations under `migrations/`, current head `c5e9b1f4a7d3`). The schema covers
+raw sources and import batches, players and aliases, hands with players,
+actions, board and hole cards, uncalled returns, decision points, and the
+versioned feature store (`feature_decisions`, `feature_opportunities`).
+
+### Current state and tests
+
+The suite is the acceptance boundary: `Ran 1003 tests ... OK (skipped=7)`.
+Sixteen poker tasks have been implemented and published through the harness so
+far; since `POKER-PR-FLOW-001` every publication goes through a blocking pull
+request, and the flow keeps `main` gated on the evidence-backed checks.
+
+Run the full suite from the repository root:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m unittest discover -s tests
+```
+
 ## Source of truth
 
 `harness/manifest.yaml` defines the workflow, roles, skills, providers, and
@@ -106,6 +150,13 @@ python scripts/providers/codex_activate_task.py --clear
 python scripts/providers/opencode_activate_task.py --clear
 ```
 
+Implementation is TDD-first: every task records its RED evidence before the
+GREEN change, and the suite above is the regression boundary. Reviewer,
+verifier, test-auditor and security-reviewer agents are read-only gates; for
+risk-relevant work they run independently from the implementation writer.
+Since `POKER-PR-FLOW-001`, publication of an accepted candidate is a blocking
+pull request rather than a direct push to `main`.
+
 ## Product-idea lifecycle
 
 Broad ideas first use `planning/` and the product discovery policies. The idea
@@ -135,6 +186,9 @@ They are different controls; see the two RDD documents in `docs/`.
 - `.agents/`: canonical roles and skills.
 - `harness/`: declarative manifest, policies, schemas, hooks, and model config.
 - `scripts/`: executable control-plane implementation.
+- `src/poker/`: the poker application packages (see "Module architecture" above).
+- `tests/`: the unittest suite for the poker packages.
+- `migrations/`: Alembic migrations for the SQLite schema.
 - `planning/`: product discovery and approved planning records.
 - `tasks/`: executable task JSON files.
 - `docs/`: explanatory and operational documentation.
